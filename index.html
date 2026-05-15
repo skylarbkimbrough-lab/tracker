@@ -1,952 +1,1669 @@
-<!doctype html>
-<html lang="en"><head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Glitter Habits</title>
-  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
-  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:wght@700&amp;family=Raleway:wght@700;800;900&amp;display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'DM Sans', sans-serif; }
-    .heading-font { font-family: 'Playfair Display', serif; }
-    @keyframes sparkle {
-      0%, 100% { opacity: 0.3; transform: scale(0.8); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-    .sparkle-dot {
-      position: absolute; width: 6px; height: 6px;
-      background: #f97316; border-radius: 50%;
-      animation: sparkle 1.5s infinite; pointer-events: none;
-    }
-    .sparkle-dot:nth-child(2n) { background: #fb923c; animation-delay: 0.5s; }
-    .sparkle-dot:nth-child(3n) { background: #fed7aa; animation-delay: 1s; width: 4px; height: 4px; }
-    .tab-active {
-      background: linear-gradient(135deg, #f97316, #14b8a6);
-      color: #fff; box-shadow: 0 0 20px rgba(249,115,22,0.4);
-    }
-    .tab-inactive { background: rgba(255,255,255,0.15); color: #e2e8f0; }
-    .tab-inactive:hover { background: rgba(255,255,255,0.25); }
-    .card-glass {
-      background: rgba(255,255,255,0.1);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.2);
-    }
-    .input-style {
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.25);
-      color: #fff; border-radius: 0.5rem;
-      padding: 0.5rem 0.75rem; width: 100%;
-      outline: none; transition: border-color 0.2s;
-    }
-    .input-style:focus { border-color: #f97316; }
-    .input-style::placeholder { color: rgba(255,255,255,0.4); }
-    select.input-style option { background: #1e1b4b; color: #fff; }
-    .btn-glow {
-      background: linear-gradient(135deg, #f97316, #ea580c);
-      color: #fff; border: none; padding: 0.5rem 1.25rem;
-      border-radius: 0.5rem; font-weight: 600; cursor: pointer;
-      transition: box-shadow 0.2s, transform 0.1s;
-    }
-    .btn-glow:hover { box-shadow: 0 0 24px rgba(249,115,22,0.5); transform: translateY(-1px); }
-    .btn-glow:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-    .record-item {
-      background: linear-gradient(135deg, rgba(20,184,166,0.12), rgba(249,115,22,0.08));
-      border: 1px solid rgba(249,115,22,0.4);
-      border-left: 4px solid #f97316;
-      padding: 1rem; border-radius: 0.75rem;
-      margin-bottom: 0.75rem; transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(249,115,22,0.15);
-    }
-    .record-item:hover {
-      background: linear-gradient(135deg, rgba(20,184,166,0.18), rgba(249,115,22,0.12));
-      border-color: rgba(249,115,22,0.6);
-      box-shadow: 0 6px 16px rgba(249,115,22,0.25);
-      transform: translateY(-2px);
-    }
-    .record-item.flag-high {
-      background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(239,68,68,0.15));
-      border-color: rgba(239,68,68,0.6); border-left-color: #dc2626;
-      box-shadow: 0 4px 20px rgba(220,38,38,0.3);
-    }
-    .record-item.flag-low {
-      background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(34,197,226,0.15));
-      border-color: rgba(34,197,226,0.6); border-left-color: #0891b2;
-      box-shadow: 0 4px 20px rgba(6,182,212,0.3);
-    }
-    .quote-box {
-      font-style: italic;
-      background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(20,184,166,0.15));
-      border: 1px solid rgba(249,115,22,0.3);
-      border-radius: 0.75rem; padding: 1rem;
-    }
-    .budget-subtab { background: rgba(255,255,255,0.15); color: #e2e8f0; transition: all 0.2s; }
-    .budget-subtab:hover { background: rgba(255,255,255,0.25); }
-    .budget-subtab-active {
-      background: linear-gradient(135deg, #f97316, #14b8a6);
-      color: #fff; box-shadow: 0 0 16px rgba(249,115,22,0.35);
-    }
-    .calendar-day {
-      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
-      border-radius: 0.375rem; background: rgba(255,255,255,0.08);
-      cursor: pointer; transition: all 0.2s;
-    }
-    .calendar-day:hover { background: rgba(249,115,22,0.3); }
-    .calendar-day.has-event { background: rgba(249,115,22,0.4); font-weight: 600; border: 1px solid rgba(249,115,22,0.8); }
-    .calendar-day.is-today { background: rgba(20,184,166,0.4); border: 1px solid rgba(20,184,166,0.8); font-weight: bold; }
-    .pet-tab { background: rgba(255,255,255,0.15); color: #e2e8f0; transition: all 0.2s; }
-    .pet-tab:hover { background: rgba(255,255,255,0.25); }
-    .pet-tab-active { background: linear-gradient(135deg, #14b8a6, #0d9488); color: #fff; box-shadow: 0 0 16px rgba(20,184,166,0.35); }
-    .pet-tab-inactive { background: rgba(255,255,255,0.15); color: #e2e8f0; }
-    .toast-msg {
-      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
-      padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 600;
-      font-size: 0.875rem; z-index: 60; transition: opacity 0.3s;
-    }
-  </style>
-  <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
- </head>
- <body data-template-id="__page-root" class="w-full min-h-screen relative overflow-x-hidden" style="background: linear-gradient(135deg, rgb(15, 23, 42), rgb(19, 78, 74), rgb(30, 27, 75));">
-  <div class="sparkle-dot" style="top:5%;left:10%"></div>
-  <div class="sparkle-dot" style="top:12%;left:80%"></div>
-  <div class="sparkle-dot" style="top:30%;left:5%"></div>
-  <div class="sparkle-dot" style="top:45%;left:92%"></div>
-  <div class="sparkle-dot" style="top:60%;left:15%"></div>
-  <div class="sparkle-dot" style="top:75%;left:85%"></div>
-  <div class="sparkle-dot" style="top:88%;left:50%"></div>
-  <div class="sparkle-dot" style="top:20%;left:45%"></div>
-  <div class="sparkle-dot" style="top:55%;left:60%"></div>
-  <header class="w-full text-center pt-4 pb-2 sm:pt-6 relative z-10">
-   <h1 data-template-id="app-title" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 900; font-style: normal; font-size: 32px;">✨ THE LIFE OF A HABIT TRACKER ✨</h1>
-   <p data-template-id="app-subtitle" class="canva-text mt-1 opacity-80" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">You remind me of a younger me; I saw potential.</p>
-  </header>
-  <nav class="w-full max-w-4xl mx-auto px-2 mt-3 flex gap-1 relative z-10 flex-wrap justify-center sm:px-4 sm:gap-2 sm:mt-4" role="tablist"><button role="tab" class="tab-btn tab-active flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="profile" aria-selected="true"><i data-lucide="user" class="w-4 h-4"></i><span data-template-id="tab-profile-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Profile</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="meals" aria-selected="false"><i data-lucide="utensils" class="w-4 h-4"></i><span data-template-id="tab-meals-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Meals</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="blood" aria-selected="false"><i data-lucide="heart-pulse" class="w-4 h-4"></i><span data-template-id="tab-blood-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Blood</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="flowers" aria-selected="false"><i data-lucide="flower-2" class="w-4 h-4"></i><span data-template-id="tab-flowers-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Flowers</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="nightly" aria-selected="false"><i data-lucide="moon" class="w-4 h-4"></i><span data-template-id="tab-nightly-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Nightly</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="books" aria-selected="false"><i data-lucide="book" class="w-4 h-4"></i><span data-template-id="tab-books-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Books</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="music" aria-selected="false"><i data-lucide="music" class="w-4 h-4"></i><span data-template-id="tab-music-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Music</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="pets" aria-selected="false"><i data-lucide="dog" class="w-4 h-4"></i><span data-template-id="tab-pets-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Pets</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="budget" aria-selected="false"><i data-lucide="wallet" class="w-4 h-4"></i><span data-template-id="tab-budget-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Budget</span></button>
-  </nav><!-- Budget subtabs -->
-  <nav id="budget-subtabs" class="hidden w-full max-w-4xl mx-auto px-4 mt-3 flex gap-2 relative z-10 flex-wrap justify-center" role="tablist"><button role="tab" class="budget-subtab budget-subtab-active py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="expenses" aria-selected="true"><i data-lucide="credit-card" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-expenses-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Expenses</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="income" aria-selected="false"><i data-lucide="trending-up" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-income-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Income</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="bills" aria-selected="false"><i data-lucide="calendar" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-bills-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Bills</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="goals" aria-selected="false"><i data-lucide="target" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-goals-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Goals</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="calendar" aria-selected="false"><i data-lucide="calendar" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-calendar-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Calendar</span></button>
-  </nav>
-  <main class="w-full max-w-2xl mx-auto px-3 py-4 relative z-10 sm:px-4 sm:py-6"><!-- Profile Tab -->
-   <section id="tab-profile" role="tabpanel" class="tab-panel">
-    <div class="card-glass rounded-xl p-4 sm:p-6 space-y-4">
-     <div class="flex justify-center">
-      <img data-template-id="profile-photo" class="canva-image w-20 h-20 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-orange-400 shadow-lg" loading="lazy" src="canva://MAHJsvVBYxU/1" alt="gettyimages-1484031614.jpg">
-     </div>
-     <form id="profile-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-name" class="canva-text text-sm block mb-1" for="pf-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Name</label><input id="pf-name" type="text" class="input-style" placeholder="Your name">
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-       <div>
-        <label data-template-id="label-age" class="canva-text text-sm block mb-1" for="pf-age" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Age</label><input id="pf-age" type="number" class="input-style" placeholder="Age">
-       </div>
-       <div>
-        <label data-template-id="label-weight" class="canva-text text-sm block mb-1" for="pf-weight" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Weight</label><input id="pf-weight" type="text" class="input-style" placeholder="lbs">
-       </div>
-       <div>
-        <label data-template-id="label-height" class="canva-text text-sm block mb-1" for="pf-height" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Height</label><input id="pf-height" type="text" class="input-style" placeholder="ft/in">
-       </div>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="save-profile-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Save Profile</button>
-     </form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✨ Glitter Habits</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────────────────────── */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg:        #060d0c;
+  --bg2:       #0a1614;
+  --surface:   #0f1f1c;
+  --surface2:  #142a26;
+  --border:    #1e3d38;
+  --border2:   #2a5248;
+  --orange:    #f97316;
+  --orange2:   #fb923c;
+  --orange3:   #fed7aa;
+  --teal:      #14b8a6;
+  --teal2:     #2dd4bf;
+  --teal3:     #99f6e4;
+  --text:      #f0fdfb;
+  --text2:     #a7f3d0;
+  --muted:     #6b9e94;
+  --red:       #ef4444;
+  --blue:      #38bdf8;
+  --serif:     'Playfair Display', Georgia, serif;
+  --sans:      'DM Sans', sans-serif;
+}
+
+html, body {
+  background: #060d0c !important;
+  background-color: #060d0c !important;
+  color: #f0fdfb !important;
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GLITTER PARTICLES ────────────────────────────────────────────────────── */
+.glitter-wrap {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.g {
+  position: absolute; border-radius: 50%;
+  animation: glitter 2s infinite ease-in-out;
+}
+@keyframes glitter {
+  0%, 100% { opacity: 0.2; transform: scale(0.7) rotate(0deg); }
+  50%       { opacity: 1;   transform: scale(1.3) rotate(180deg); }
+}
+
+/* ── HEADER ───────────────────────────────────────────────────────────────── */
+header {
+  position: relative; z-index: 10;
+  text-align: center;
+  padding: 28px 20px 16px;
+  border-bottom: 1px solid #1e3d38;
+  background: linear-gradient(180deg, rgba(20,184,166,0.08) 0%, transparent 100%);
+}
+header h1 {
+  font-family: var(--serif);
+  font-size: clamp(22px, 5vw, 36px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #f97316, #fb923c, #14b8a6, #2dd4bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+header p {
+  font-size: 13px;
+  color: var(--teal2);
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* ── NAV ──────────────────────────────────────────────────────────────────── */
+nav {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(6,13,12,0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid #1e3d38;
+  display: flex; flex-wrap: wrap;
+  gap: 2px; padding: 8px 12px;
+  justify-content: center;
+}
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 5px;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--teal2); border-color: #1e3d38; }
+.tab-btn.active {
+  background: linear-gradient(135deg, #f97316, #14b8a6);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 0 16px rgba(249,115,22,0.35);
+}
+.tab-btn svg { width: 13px; height: 13px; }
+
+/* ── MAIN CONTENT ─────────────────────────────────────────────────────────── */
+main {
+  position: relative; z-index: 10;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── CARDS ────────────────────────────────────────────────────────────────── */
+.card {
+  background: #0f1f1c;
+  border: 1px solid #1e3d38;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--orange);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title.teal { color: var(--teal); }
+
+.quote-card {
+  background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(20,184,166,0.08));
+  border: 1px solid rgba(249,115,22,0.25);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  font-style: italic;
+  font-size: 13px;
+  color: #fbbf24;
+  text-align: center;
+  font-family: var(--serif);
+}
+
+/* ── FORM ELEMENTS ────────────────────────────────────────────────────────── */
+.form-group { margin-bottom: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--orange3);
+  margin-bottom: 5px;
+}
+input, select, textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid #1e3d38;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--orange);
+  box-shadow: 0 0 0 2px rgba(249,115,22,0.15);
+}
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.25); }
+select option { background: #0a1614; color: #f0fdfb; }
+textarea { resize: vertical; min-height: 70px; }
+input[type="range"] { padding: 0; background: transparent; border: none; }
+input[type="checkbox"] { width: auto; accent-color: var(--teal); }
+
+.range-wrap { display: flex; align-items: center; gap: 10px; }
+.range-wrap input { flex: 1; }
+.range-val {
+  font-size: 18px; font-weight: 700;
+  color: var(--orange);
+  min-width: 28px; text-align: center;
+}
+.range-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* big number input for blood sugar */
+.bs-input {
+  font-size: 52px !important;
+  font-weight: 800 !important;
+  text-align: center;
+  line-height: 1;
+  padding: 12px !important;
+  letter-spacing: -0.02em;
+}
+
+/* ── BUTTONS ──────────────────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--sans);
+  font-size: 12px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 10px 20px;
+  border: none; border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.btn-orange {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+}
+.btn-orange:hover { box-shadow: 0 0 20px rgba(249,115,22,0.45); transform: translateY(-1px); }
+.btn-teal {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff;
+}
+.btn-teal:hover { box-shadow: 0 0 20px rgba(20,184,166,0.45); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid #1e3d38;
+  color: var(--muted);
+}
+.btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+.btn-danger {
+  background: transparent;
+  border: 1px solid rgba(239,68,68,0.4);
+  color: #ef4444;
+}
+.btn-danger:hover { background: rgba(239,68,68,0.1); }
+.btn-sm { padding: 5px 10px; font-size: 10px; }
+.btn-full { width: 100%; margin-top: 4px; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+/* ── LOG ENTRIES ──────────────────────────────────────────────────────────── */
+.log-section { margin-top: 20px; }
+.log-section-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1e3d38;
+}
+.log-empty {
+  text-align: center;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 13px;
+  padding: 20px;
+  border: 1px dashed #1e3d38;
+  border-radius: 8px;
+}
+.log-entry {
+  background: #142a26;
+  border: 1px solid #1e3d38;
+  border-left: 3px solid var(--orange);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  transition: all 0.2s;
+}
+.log-entry:hover { border-color: rgba(249,115,22,0.5); transform: translateX(2px); }
+.log-entry.teal-accent { border-left-color: var(--teal); }
+.log-entry.red-accent { border-left-color: var(--red); background: rgba(239,68,68,0.08); }
+.log-entry.blue-accent { border-left-color: var(--blue); background: rgba(56,189,248,0.08); }
+.log-entry-main { flex: 1; min-width: 0; }
+.log-entry-name {
+  font-weight: 600; font-size: 14px;
+  color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.log-entry-sub {
+  font-size: 12px; color: var(--muted);
+  margin-top: 2px;
+}
+.log-entry-badge {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid;
+  white-space: nowrap;
+  margin-top: 4px;
+  display: inline-block;
+}
+.badge-orange { border-color: rgba(249,115,22,0.5); color: var(--orange2); }
+.badge-teal   { border-color: rgba(20,184,166,0.5); color: var(--teal2); }
+.badge-red    { border-color: rgba(239,68,68,0.5); color: #f87171; }
+.badge-blue   { border-color: rgba(56,189,248,0.5); color: var(--blue); }
+.log-entry-actions { display: flex; gap: 4px; flex-shrink: 0; }
+.del-btn {
+  background: transparent; border: none;
+  color: var(--muted); cursor: pointer;
+  padding: 4px; border-radius: 4px;
+  transition: color 0.2s;
+  display: flex; align-items: center;
+}
+.del-btn:hover { color: var(--red); }
+.del-btn svg { width: 14px; height: 14px; }
+
+/* ── SUBTABS ──────────────────────────────────────────────────────────────── */
+.subtab-nav {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #1e3d38;
+}
+.subtab-btn {
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #1e3d38;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.subtab-btn:hover { color: var(--teal2); border-color: #2a5248; }
+.subtab-btn.active {
+  background: linear-gradient(135deg, #f97316, #14b8a6);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 0 12px rgba(249,115,22,0.3);
+}
+.subtab-panel { display: none; }
+.subtab-panel.active { display: block; }
+
+/* ── PET TABS ─────────────────────────────────────────────────────────────── */
+.pet-nav {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 16px;
+}
+.pet-btn {
+  font-size: 12px; font-weight: 600;
+  padding: 7px 16px;
+  border-radius: 8px;
+  border: 1px solid #1e3d38;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer; transition: all 0.2s;
+}
+.pet-btn:hover { border-color: var(--teal); color: var(--teal2); }
+.pet-btn.active {
+  background: linear-gradient(135deg, #14b8a6, #0d9488);
+  color: #fff; border-color: transparent;
+  box-shadow: 0 0 12px rgba(20,184,166,0.3);
+}
+.pet-panel { display: none; }
+.pet-panel.active { display: block; }
+
+/* ── PHOTO UPLOAD ─────────────────────────────────────────────────────────── */
+.photo-wrap {
+  position: relative; cursor: pointer;
+  border-radius: 10px; overflow: hidden;
+  margin-bottom: 16px;
+}
+.photo-wrap img {
+  width: 100%; height: 140px;
+  object-fit: cover; display: block;
+  transition: filter 0.2s;
+}
+.photo-wrap:hover img { filter: brightness(0.7); }
+.photo-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: var(--orange2);
+  gap: 6px;
+}
+.photo-wrap:hover .photo-overlay { opacity: 1; }
+.photo-wrap input[type="file"] { display: none; }
+
+/* Profile photo */
+.profile-photo-wrap {
+  position: relative; cursor: pointer;
+  width: 100px; height: 100px;
+  border-radius: 50%; overflow: hidden;
+  border: 3px solid var(--orange);
+  box-shadow: 0 0 20px rgba(249,115,22,0.3);
+  margin: 0 auto 16px;
+}
+.profile-photo-wrap img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.profile-photo-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity 0.2s;
+  font-size: 9px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--orange2);
+  text-align: center;
+}
+.profile-photo-wrap:hover .profile-photo-overlay { opacity: 1; }
+.profile-photo-wrap input[type="file"] { display: none; }
+
+/* ── EDIT MODE ────────────────────────────────────────────────────────────── */
+.edit-fab {
+  position: fixed; bottom: 24px; right: 20px; z-index: 200;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  border: none; border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  padding: 11px 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(249,115,22,0.4);
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.edit-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(249,115,22,0.5); }
+.edit-fab.on { background: linear-gradient(135deg, #14b8a6, #0d9488); box-shadow: 0 4px 20px rgba(20,184,166,0.4); }
+.edit-fab svg { width: 14px; height: 14px; }
+
+[contenteditable="true"] {
+  outline: 1px dashed rgba(249,115,22,0.5);
+  background: rgba(249,115,22,0.04);
+  border-radius: 3px;
+  cursor: text;
+  min-width: 20px;
+}
+[contenteditable="true"]:focus {
+  outline: 1px solid var(--orange);
+  background: rgba(249,115,22,0.08);
+}
+.edit-hint {
+  display: none;
+  font-size: 10px; font-weight: 600;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--orange);
+  text-align: center;
+  padding: 6px;
+  margin-bottom: 12px;
+  border: 1px dashed rgba(249,115,22,0.3);
+  border-radius: 6px;
+}
+body.editing .edit-hint { display: block; }
+
+/* ── SAVINGS GOAL PROGRESS ────────────────────────────────────────────────── */
+.progress-bar-wrap {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px; height: 8px;
+  margin-top: 6px; overflow: hidden;
+}
+.progress-bar {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, #f97316, #14b8a6);
+  transition: width 0.4s ease;
+}
+
+/* ── CALENDAR ─────────────────────────────────────────────────────────────── */
+.cal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.cal-month {
+  font-family: var(--serif);
+  font-size: 16px; font-weight: 700;
+  color: var(--orange2);
+}
+.cal-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.cal-day-label {
+  text-align: center;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 0;
+}
+.cal-day {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: default;
+  background: rgba(255,255,255,0.04);
+  transition: all 0.15s;
+  color: var(--text);
+}
+.cal-day.has-event {
+  background: rgba(249,115,22,0.25);
+  font-weight: 700;
+  border: 1px solid rgba(249,115,22,0.6);
+}
+.cal-day.today {
+  background: rgba(20,184,166,0.3);
+  font-weight: 700;
+  border: 1px solid rgba(20,184,166,0.7);
+  color: var(--teal2);
+}
+.cal-day.empty { background: transparent; color: transparent; }
+
+/* ── BLOOD SUGAR FLAGS ────────────────────────────────────────────────────── */
+.bs-flag {
+  display: inline-block;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+.bs-high { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.4); }
+.bs-low  { background: rgba(56,189,248,0.2); color: var(--blue); border: 1px solid rgba(56,189,248,0.4); }
+.bs-ok   { background: rgba(20,184,166,0.2); color: var(--teal2); border: 1px solid rgba(20,184,166,0.4); }
+
+/* ── MODAL ────────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: #0f1f1c;
+  border: 1px solid #1e3d38;
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 380px; width: 100%;
+  text-align: center;
+}
+.modal p { color: var(--text); margin-bottom: 16px; font-size: 15px; }
+.modal-btns { display: flex; gap: 10px; justify-content: center; }
+
+/* ── TOAST ────────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 80px; left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 13px; font-weight: 600;
+  z-index: 300;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+.toast.success { background: #0d9488; color: #fff; }
+.toast.error   { background: #dc2626; color: #fff; }
+
+/* ── SECTION HEADER ───────────────────────────────────────────────────────── */
+.section-header {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────────────────────── */
+@media (max-width: 520px) {
+  .form-row, .form-row.three { grid-template-columns: 1fr; }
+  main { padding: 16px 12px 80px; }
+  .tab-btn { font-size: 10px; padding: 6px 9px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Glitter particles -->
+<div class="glitter-wrap" id="glitterWrap"></div>
+
+<header>
+  <h1>✨ Glitter Habits ✨</h1>
+  <p id="headerSub" data-save="headerSub">You remind me of a younger me — I saw potential.</p>
+</header>
+
+<!-- MAIN NAV -->
+<nav>
+  <button class="tab-btn active" data-tab="profile">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+    Profile
+  </button>
+  <button class="tab-btn" data-tab="meals">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 002-2V2M7 2v20M21 15V2a5 5 0 00-5 5v6c0 1.1.9 2 2 2h3zm0 0v7"/></svg>
+    Meals
+  </button>
+  <button class="tab-btn" data-tab="blood">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    Blood
+  </button>
+  <button class="tab-btn" data-tab="flowers">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2a4 4 0 014 4c0 1.1-.45 2.1-1.17 2.83A4 4 0 0118 12a4 4 0 01-4 4c-1.1 0-2.1-.45-2.83-1.17A4 4 0 018 18a4 4 0 01-4-4 4 4 0 014-4c1.1 0 2.1.45 2.83 1.17A4 4 0 018 8a4 4 0 014-4z"/></svg>
+    Flowers
+  </button>
+  <button class="tab-btn" data-tab="nightly">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    Nightly
+  </button>
+  <button class="tab-btn" data-tab="books">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+    Books
+  </button>
+  <button class="tab-btn" data-tab="music">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+    Music
+  </button>
+  <button class="tab-btn" data-tab="pets">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.96-1.45 2.344-2.5M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.96-1.45-2.344-2.5"/><path d="M8 14v.5A3.5 3.5 0 0011.5 18h1a3.5 3.5 0 003.5-3.5V14a2 2 0 00-2-2h-4a2 2 0 00-2 2z"/></svg>
+    Pets
+  </button>
+  <button class="tab-btn" data-tab="budget">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Budget
+  </button>
+</nav>
+
+<main>
+
+<!-- ══════════════════ PROFILE ══════════════════ -->
+<div class="tab-panel active" id="tab-profile">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="card">
+    <div class="profile-photo-wrap" onclick="document.getElementById('profilePhotoInput').click()">
+      <img id="profilePhoto" src="https://images.pexels.com/photos/1484031/pexels-photo-1484031.jpeg?auto=compress&cs=tinysrgb&w=200" alt="Profile">
+      <div class="profile-photo-overlay">Change<br>Photo</div>
+      <input type="file" id="profilePhotoInput" accept="image/*" onchange="changePhoto('profilePhoto','profile_photo',event)">
     </div>
-   </section><!-- Meals Tab -->
-   <section id="tab-meals" role="tabpanel" class="tab-panel hidden">
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-romantic" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"It's actually romantic... how you logged your meals today."</p>
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" id="pf-name" placeholder="Your name">
     </div>
-    <div class="card-glass rounded-xl p-4 sm:p-5 space-y-3">
-     <h2 data-template-id="meals-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🍽️ Meal Tracker</h2>
-     <form id="meal-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-meal-name" class="canva-text text-sm block mb-1" for="meal-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Meal Name</label><input id="meal-name" type="text" class="input-style" placeholder="e.g. Avocado Toast" required="">
+    <div class="form-row three">
+      <div class="form-group" style="margin:0">
+        <label>Age</label>
+        <input type="number" id="pf-age" placeholder="Age">
       </div>
-      <div>
-       <label data-template-id="label-meal-notes" class="canva-text text-sm block mb-1" for="meal-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="meal-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-meal-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Meal</button>
-     </form>
-     <div id="meal-list" class="mt-3 space-y-2"></div>
-     <p id="meal-empty" data-template-id="meal-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No meals logged yet — treat yourself! 🍕</p>
+      <div class="form-group" style="margin:0">
+        <label>Weight</label>
+        <input type="text" id="pf-weight" placeholder="lbs">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Height</label>
+        <input type="text" id="pf-height" placeholder="ft/in">
+      </div>
     </div>
-   </section><!-- Blood Sugar Tab -->
-   <section id="tab-blood" role="tabpanel" class="tab-panel hidden">
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-blood" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"I had a bad habit;
-Of missing blood sugars readings past."</p>
-    </div>
-    <div class="card-glass rounded-xl p-5 space-y-3">
-     <h2 data-template-id="blood-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">💉 Blood Sugar Tracker</h2>
-     <form id="blood-form" class="space-y-3">
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
-       <div class="col-span-1 sm:col-span-2 flex flex-col">
-        <label data-template-id="label-bs-value" class="canva-text text-sm block mb-2" for="bs-value" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Reading (mg/dL)</label><input id="bs-value" type="number" class="input-style text-center flex-1" placeholder="0" required="" style="font-size: 4rem; font-weight: 800; line-height: 1;">
-       </div>
-       <div class="flex flex-col">
-        <label data-template-id="label-bs-notes" class="canva-text text-sm block mb-1" for="bs-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="bs-notes" class="input-style flex-1 text-xs" placeholder="e.g. Before lunch"></textarea>
-       </div>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-bs-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Reading</button>
-     </form>
-     <div id="blood-list" class="mt-3 space-y-2"></div>
-     <p id="blood-empty" data-template-id="blood-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No readings yet — stay on top of it! 💪</p>
-    </div>
-   </section><!-- Flowers Tab -->
-   <section id="tab-flowers" role="tabpanel" class="tab-panel hidden">
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-showgirl" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"The show must go on." 🌸</p>
-    </div>
-    <div class="card-glass rounded-xl p-5 space-y-3">
-     <h2 data-template-id="flowers-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🌺 Flower Tracker</h2>
-     <div class="flex justify-center mb-2">
-      <img data-template-id="flower-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="canva://MAE896yDbKg/1" alt="Bright orange glitter sparkle. Seamless square texture.">
-     </div>
-     <form id="flower-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-flower-name" class="canva-text text-sm block mb-1" for="flower-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Flower Name</label><input id="flower-name" type="text" class="input-style" placeholder="e.g. Sunflower" required="">
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-       <div>
-        <label data-template-id="label-flower-date" class="canva-text text-sm block mb-1" for="flower-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="flower-date" type="date" class="input-style" required="">
-       </div>
-       <div>
-        <label data-template-id="label-flower-time" class="canva-text text-sm block mb-1" for="flower-time" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Time</label><input id="flower-time" type="time" class="input-style">
-       </div>
-      </div>
-      <div>
-       <label data-template-id="label-flower-location" class="canva-text text-sm block mb-1" for="flower-location" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Location</label><input id="flower-location" type="text" class="input-style" placeholder="e.g. Backyard">
-      </div>
-      <div>
-       <label data-template-id="label-flower-allotment" class="canva-text text-sm block mb-1" for="flower-allotment" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Allotment Used</label><input id="flower-allotment" type="text" class="input-style" placeholder="e.g. Bed 3">
-      </div>
-      <div>
-       <label data-template-id="label-flower-notes" class="canva-text text-sm block mb-1" for="flower-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="flower-notes" class="input-style" rows="2" placeholder="How's it growing?"></textarea>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-flower-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(20, 184, 166)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Flower</button>
-     </form>
-     <div id="flower-list" class="mt-3 space-y-2"></div>
-     <p id="flower-empty" data-template-id="flower-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No flowers logged yet — time to garden! 🌻</p>
-    </div>
-   </section><!-- Nightly Dose Tab -->
-   <section id="tab-nightly" role="tabpanel" class="tab-panel hidden">
-    <div class="card-glass rounded-xl p-5 space-y-3">
-     <h2 data-template-id="nightly-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">🌙 Nightly Dose</h2>
-     <form id="nightly-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-nightly-amount" class="canva-text text-sm block mb-1" for="nightly-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount</label><input id="nightly-amount" type="text" class="input-style" placeholder="e.g. 2 capsules" required="">
-      </div>
-      <div>
-       <label data-template-id="label-nightly-date" class="canva-text text-sm block mb-1" for="nightly-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="nightly-date" type="date" class="input-style" required="">
-      </div>
-      <div>
-       <label data-template-id="label-nightly-feeling" class="canva-text text-sm block mb-1" for="nightly-feeling" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">How are you feeling?</label>
-       <div class="flex items-center gap-3">
-        <input id="nightly-feeling" type="range" min="1" max="10" value="5" class="flex-1" style="height:6px;border-radius:3px;background:rgba(255,255,255,0.2);outline:none;"><span id="feeling-display" class="text-sm font-semibold text-orange-300 w-8 text-center">5</span>
-       </div>
-       <div class="text-xs opacity-60 mt-1 flex justify-between px-1">
-        <span data-template-id="feeling-worst" class="canva-text" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">Worst</span><span data-template-id="feeling-best" class="canva-text" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">Best</span>
-       </div>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-nightly-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Dose</button>
-     </form>
-     <div id="nightly-list" class="mt-3 space-y-2"></div>
-     <p id="nightly-empty" data-template-id="nightly-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No doses logged yet — time to wind down! 😴</p>
-    </div>
-   </section><!-- Books Tab -->
-   <section id="tab-books" role="tabpanel" class="tab-panel hidden">
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-books" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"A reader lives a thousand lives before he dies. The man who never reads lives only one."</p>
-    </div>
-    <div class="card-glass rounded-xl p-5 space-y-3">
-     <h2 data-template-id="books-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📚 Book Tracker</h2>
-     <div class="flex justify-center mb-2">
-      <img data-template-id="books-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/1130980/pexels-photo-1130980.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="A stack of vintage hardcover books on a wooden table in a cozy library setting.">
-     </div>
-     <form id="books-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-book-title" class="canva-text text-sm block mb-1" for="book-title" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Book Title</label><input id="book-title" type="text" class="input-style" placeholder="e.g. The Midnight Library" required="">
-      </div>
-      <div>
-       <label data-template-id="label-book-author" class="canva-text text-sm block mb-1" for="book-author" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Author</label><input id="book-author" type="text" class="input-style" placeholder="e.g. Matt Haig">
-      </div>
-      <div>
-       <label data-template-id="label-book-status" class="canva-text text-sm block mb-1" for="book-status" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Status</label><select id="book-status" class="input-style"><option value="want-to-read">Want to Read</option><option value="reading">Currently Reading</option><option value="completed">Completed</option></select>
-      </div>
-      <div>
-       <label data-template-id="label-book-notes" class="canva-text text-sm block mb-1" for="book-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Your Thoughts</label><textarea id="book-notes" class="input-style" rows="2" placeholder="Your thoughts..."></textarea>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-book-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Book</button>
-     </form>
-     <div id="books-list" class="mt-3 space-y-2"></div>
-     <p id="books-empty" data-template-id="books-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No books logged yet — start your reading list! 📖</p>
-    </div>
-   </section><!-- Music Tab -->
-   <section id="tab-music" role="tabpanel" class="tab-panel hidden">
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-music" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Music is the soundtrack to my life." 🎶</p>
-    </div>
-    <div class="card-glass rounded-xl p-5 space-y-3">
-     <h2 data-template-id="music-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🎵 Album Collection</h2>
-     <form id="music-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-album-name" class="canva-text text-sm block mb-1" for="album-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Album Name</label><input id="album-name" type="text" class="input-style" placeholder="e.g. Midnights" required="">
-      </div>
-      <div>
-       <label data-template-id="label-artist-name" class="canva-text text-sm block mb-1" for="artist-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Artist</label><input id="artist-name" type="text" class="input-style" placeholder="e.g. Taylor Swift">
-      </div>
-      <div>
-       <label data-template-id="label-cover-emoji" class="canva-text text-sm block mb-1" for="cover-emoji" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Cover Emoji</label><input id="cover-emoji" type="text" class="input-style" placeholder="🎵" maxlength="2" required="">
-      </div>
-      <div>
-       <label data-template-id="label-physical-media" class="canva-text text-sm block mb-1" for="physical-media" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Physical Media</label><select id="physical-media" class="input-style"><option value="">Select media type</option><option value="vinyl">Vinyl Record</option><option value="cd">CD</option><option value="cassette">Cassette Tape</option><option value="digital">Digital Only</option></select>
-      </div>
-      <div class="flex items-center gap-2">
-       <input id="album-signed" type="checkbox" class="w-4 h-4" style="accent-color: #f97316;"><label data-template-id="label-signed" class="canva-text text-sm" for="album-signed" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Signed?</label>
-      </div>
-      <div>
-       <label data-template-id="label-music-notes" class="canva-text text-sm block mb-1" for="music-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Your Thoughts</label><textarea id="music-notes" class="input-style" rows="2" placeholder="Your thoughts..."></textarea>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-music-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Album</button>
-     </form>
-     <div id="music-list" class="mt-3 space-y-2"></div>
-     <p id="music-empty" data-template-id="music-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No albums logged yet — start building your collection! 🎧</p>
-    </div>
-   </section><!-- Pets Tab -->
-   <section id="tab-pets" role="tabpanel" class="tab-panel hidden">
-    <nav class="w-full flex gap-1.5 flex-wrap justify-center mb-4" role="tablist"><button role="tab" class="pet-tab pet-tab-active py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="blair" aria-selected="true"><span data-template-id="pet-blair-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Blair</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="tessa" aria-selected="false"><span data-template-id="pet-tessa-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Tessa</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="zoey" aria-selected="false"><span data-template-id="pet-zoey-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Zoey</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="maximus" aria-selected="false"><span data-template-id="pet-maximus-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Maximus</span></button>
-    </nav>
-    <div class="quote-box mb-4">
-     <p data-template-id="quote-pets" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Pets are not our whole life, but they make our lives whole."</p>
-    </div>
-    <div id="pet-blair" class="pet-panel card-glass rounded-xl p-5 space-y-3">
-     <div class="flex justify-center mb-2">
-      <img data-template-id="pet-blair-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/19142219/pexels-photo-19142219.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Charming fluffy puppy sitting on a tiled floor with warm lighting, perfect for pet-themed content.">
-     </div>
-     <form id="blair-form" class="space-y-3">
-      <div>
-       <label data-template-id="label-reminder-type" class="canva-text text-sm block mb-1" for="blair-type" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Reminder Type</label><select id="blair-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
-      </div>
-      <div>
-       <label data-template-id="label-reminder-date" class="canva-text text-sm block mb-1" for="blair-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="blair-date" type="date" class="input-style" required="">
-      </div>
-      <div>
-       <label data-template-id="label-reminder-notes" class="canva-text text-sm block mb-1" for="blair-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Details</label><textarea id="blair-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
-      </div><button type="submit" class="btn-glow w-full" data-template-id="log-reminder-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Reminder</button>
-     </form>
-     <div id="blair-list" class="mt-3 space-y-2"></div>
-     <p id="blair-empty" data-template-id="blair-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Blair yet 🐾</p>
-    </div>
-    <div id="pet-tessa" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
-     <div class="flex justify-center mb-2">
-      <img data-template-id="pet-tessa-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/1571076/pexels-photo-1571076.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="A close-up portrait of a cute calico cat with vivid eyes and soft fur, perfect for animal lovers.">
-     </div>
-     <form id="tessa-form" class="space-y-3">
-      <div>
-       <label class="canva-text text-sm block mb-1" for="tessa-type">Reminder Type</label><select id="tessa-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="tessa-date">Date</label><input id="tessa-date" type="date" class="input-style" required="">
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="tessa-notes">Details</label><textarea id="tessa-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
-      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
-     </form>
-     <div id="tessa-list" class="mt-3 space-y-2"></div>
-     <p id="tessa-empty" data-template-id="tessa-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Tessa yet 🐾</p>
-    </div>
-    <div id="pet-zoey" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
-     <div class="flex justify-center mb-2">
-      <img data-template-id="pet-zoey-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/6557017/pexels-photo-6557017.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Close-up of a cute puppy looking up with big eyes indoors. Perfect for pet lovers.">
-     </div>
-     <form id="zoey-form" class="space-y-3">
-      <div>
-       <label class="canva-text text-sm block mb-1" for="zoey-type">Reminder Type</label><select id="zoey-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="zoey-date">Date</label><input id="zoey-date" type="date" class="input-style" required="">
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="zoey-notes">Details</label><textarea id="zoey-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
-      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
-     </form>
-     <div id="zoey-list" class="mt-3 space-y-2"></div>
-     <p id="zoey-empty" data-template-id="zoey-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Zoey yet 🐾</p>
-    </div>
-    <div id="pet-maximus" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
-     <div class="flex justify-center mb-2">
-      <img data-template-id="pet-maximus-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/4695939/pexels-photo-4695939.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Elegant portrait of a black Great Dane against a dark backdrop. Stunning and regal representation.">
-     </div>
-     <form id="maximus-form" class="space-y-3">
-      <div>
-       <label class="canva-text text-sm block mb-1" for="maximus-type">Reminder Type</label><select id="maximus-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="maximus-date">Date</label><input id="maximus-date" type="date" class="input-style" required="">
-      </div>
-      <div>
-       <label class="canva-text text-sm block mb-1" for="maximus-notes">Details</label><textarea id="maximus-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
-      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
-     </form>
-     <div id="maximus-list" class="mt-3 space-y-2"></div>
-     <p id="maximus-empty" data-template-id="maximus-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Maximus yet 🐾</p>
-    </div>
-   </section><!-- Budget Tab -->
-   <section id="tab-budget" role="tabpanel" class="tab-panel hidden">
-    <div id="budget-subtab-expenses" class="budget-subtab-panel">
-     <div class="quote-box mb-4">
-      <p data-template-id="quote-budget" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Money is a tool. Used properly, it makes you free." 💸</p>
-     </div>
-     <div class="card-glass rounded-xl p-5 space-y-3">
-      <h2 data-template-id="budget-expenses-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">💳 Expenses</h2>
-      <div class="flex justify-center mb-2">
-       <img data-template-id="budget-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/3943716/pexels-photo-3943716.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Person placing coin into a black piggy bank with scattered coins, symbolizing savings and finance.">
-      </div>
-      <form id="expense-form" class="space-y-3">
-       <div>
-        <label data-template-id="label-expense-category" class="canva-text text-sm block mb-1" for="expense-category" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Category</label><input id="expense-category" type="text" class="input-style" placeholder="e.g. Groceries" required="">
-       </div>
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-         <label data-template-id="label-expense-amount" class="canva-text text-sm block mb-1" for="expense-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="expense-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
-        </div>
-        <div>
-         <label data-template-id="label-expense-date" class="canva-text text-sm block mb-1" for="expense-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="expense-date" type="date" class="input-style" required="">
-        </div>
-       </div>
-       <div>
-        <label data-template-id="label-expense-notes" class="canva-text text-sm block mb-1" for="expense-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="expense-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
-       </div><button type="submit" class="btn-glow w-full" data-template-id="log-expense-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Expense</button>
-      </form>
-      <div id="expense-list" class="mt-3 space-y-2"></div>
-      <p id="expense-empty" data-template-id="expense-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No expenses logged yet — start tracking! 💳</p>
-     </div>
-    </div>
-    <div id="budget-subtab-income" class="budget-subtab-panel hidden">
-     <div class="card-glass rounded-xl p-5 space-y-3">
-      <h2 data-template-id="budget-income-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">💰 Income Tracker</h2>
-      <form id="income-form" class="space-y-3">
-       <div>
-        <label data-template-id="label-income-source" class="canva-text text-sm block mb-1" for="income-source" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Income Source</label><input id="income-source" type="text" class="input-style" placeholder="e.g. Salary" required="">
-       </div>
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-         <label data-template-id="label-income-amount" class="canva-text text-sm block mb-1" for="income-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="income-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
-        </div>
-        <div>
-         <label data-template-id="label-income-date" class="canva-text text-sm block mb-1" for="income-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="income-date" type="date" class="input-style" required="">
-        </div>
-       </div>
-       <div>
-        <label data-template-id="label-income-frequency" class="canva-text text-sm block mb-1" for="income-frequency" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Frequency</label><select id="income-frequency" class="input-style"><option value="once">One-time</option><option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select>
-       </div>
-       <div>
-        <label data-template-id="label-income-notes" class="canva-text text-sm block mb-1" for="income-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="income-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
-       </div><button type="submit" class="btn-glow w-full" data-template-id="log-income-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Income</button>
-      </form>
-      <div id="income-list" class="mt-3 space-y-2"></div>
-      <p id="income-empty" data-template-id="income-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No income recorded yet — add a source! 💰</p>
-     </div>
-    </div>
-    <div id="budget-subtab-bills" class="budget-subtab-panel hidden">
-     <div class="card-glass rounded-xl p-5 space-y-3">
-      <h2 data-template-id="budget-bills-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📅 Bills &amp; Due Dates</h2>
-      <form id="bill-form" class="space-y-3">
-       <div>
-        <label data-template-id="label-bill-name" class="canva-text text-sm block mb-1" for="bill-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Bill Name</label><input id="bill-name" type="text" class="input-style" placeholder="e.g. Electric Bill" required="">
-       </div>
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-         <label data-template-id="label-bill-amount" class="canva-text text-sm block mb-1" for="bill-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="bill-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
-        </div>
-        <div>
-         <label data-template-id="label-bill-due" class="canva-text text-sm block mb-1" for="bill-due" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Due Date</label><input id="bill-due" type="date" class="input-style" required="">
-        </div>
-       </div>
-       <div>
-        <label data-template-id="label-bill-frequency" class="canva-text text-sm block mb-1" for="bill-frequency" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Frequency</label><select id="bill-frequency" class="input-style"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="once">One-time</option></select>
-       </div>
-       <div class="flex items-center gap-2">
-        <input id="bill-paid" type="checkbox" class="w-4 h-4" style="accent-color: #14b8a6;"><label data-template-id="label-bill-paid" class="canva-text text-sm" for="bill-paid" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Paid?</label>
-       </div>
-       <div>
-        <label data-template-id="label-bill-notes" class="canva-text text-sm block mb-1" for="bill-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="bill-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
-       </div><button type="submit" class="btn-glow w-full" data-template-id="log-bill-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Bill</button>
-      </form>
-      <div id="bill-list" class="mt-3 space-y-2"></div>
-      <p id="bill-empty" data-template-id="bill-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No bills added yet — stay organized! 📅</p>
-     </div>
-    </div>
-    <div id="budget-subtab-goals" class="budget-subtab-panel hidden">
-     <div class="card-glass rounded-xl p-5 space-y-3">
-      <h2 data-template-id="budget-goals-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">🎯 Savings Goals</h2>
-      <form id="goal-form" class="space-y-3">
-       <div>
-        <label data-template-id="label-goal-name" class="canva-text text-sm block mb-1" for="goal-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Goal Name</label><input id="goal-name" type="text" class="input-style" placeholder="e.g. Vacation Fund" required="">
-       </div>
-       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-         <label data-template-id="label-goal-target" class="canva-text text-sm block mb-1" for="goal-target" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Target Amount ($)</label><input id="goal-target" type="number" class="input-style" placeholder="Target" step="0.01" required="">
-        </div>
-        <div>
-         <label data-template-id="label-goal-saved" class="canva-text text-sm block mb-1" for="goal-saved" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Already Saved ($)</label><input id="goal-saved" type="number" class="input-style" placeholder="Saved so far" step="0.01" required="">
-        </div>
-       </div>
-       <div>
-        <label data-template-id="label-goal-deadline" class="canva-text text-sm block mb-1" for="goal-deadline" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Target Date</label><input id="goal-deadline" type="date" class="input-style" required="">
-       </div>
-       <div>
-        <label data-template-id="label-goal-notes" class="canva-text text-sm block mb-1" for="goal-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Motivation</label><textarea id="goal-notes" class="input-style" rows="2" placeholder="Your motivation..."></textarea>
-       </div><button type="submit" class="btn-glow w-full" data-template-id="log-goal-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Create Goal</button>
-      </form>
-      <div id="goal-list" class="mt-3 space-y-2"></div>
-      <p id="goal-empty" data-template-id="goal-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No goals yet — dream big! 🎯</p>
-     </div>
-    </div>
-    <div id="budget-subtab-calendar" class="budget-subtab-panel hidden">
-     <div class="card-glass rounded-xl p-5 space-y-3">
-      <h2 data-template-id="budget-calendar-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📆 Mini Calendar</h2>
-      <div class="flex justify-between items-center gap-2 mb-4"><button id="cal-prev" type="button" class="btn-glow px-3 py-1 text-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></button> <span id="cal-month-display" class="text-sm font-semibold text-orange-300"></span> <button id="cal-next" type="button" class="btn-glow px-3 py-1 text-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-      </div>
-      <div id="mini-calendar" class="bg-white/10 rounded-lg p-4"></div>
-      <div id="calendar-events" class="mt-4 space-y-2"></div>
-      <p id="calendar-empty" data-template-id="calendar-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No upcoming events — check back later! 📅</p>
-     </div>
-    </div>
-   </section>
-  </main>
-  <div id="limit-warning" class="hidden toast-msg bg-red-600 text-white">
-   Maximum 999 records reached! Please delete some entries.
+    <button class="btn btn-orange btn-full" onclick="saveProfile()">Save Profile</button>
   </div>
-  <div id="error-toast" class="hidden toast-msg bg-red-600 text-white"></div>
-  <div id="success-toast" class="hidden toast-msg bg-teal-600 text-white"></div>
-  <div id="delete-confirm" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-   <div class="card-glass rounded-xl p-6 max-w-sm w-full text-center space-y-4">
-    <p data-template-id="delete-confirm-text" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Are you sure you want to delete this entry?</p>
-    <div class="flex gap-3 justify-center"><button id="confirm-yes" class="btn-glow px-6">Delete</button> <button id="confirm-no" class="input-style cursor-pointer text-center" style="width:auto;padding:0.5rem 1.5rem">Cancel</button>
+</div>
+
+<!-- ══════════════════ MEALS ══════════════════ -->
+<div class="tab-panel" id="tab-meals">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-meals">"It's actually romantic... how you logged your meals today."</div>
+  <div class="card">
+    <div class="card-title">🍽️ <span data-save="meals-title">Meal Tracker</span></div>
+    <div class="form-group">
+      <label>Meal Name</label>
+      <input type="text" id="meal-name" placeholder="e.g. Avocado Toast">
     </div>
-   </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="meal-notes" placeholder="Optional notes..."></textarea>
+    </div>
+    <button class="btn btn-orange btn-full" onclick="logEntry('meals','meal-name','meal-notes')">Log Meal</button>
+    <div class="log-section" id="meals-log"></div>
   </div>
-  <script src="/_sdk/data_sdk.js"></script>
-  <script src="/_sdk/editing_sdk.js"></script>
-  <script>
-    let allData = [];
-    let profileRecord = null;
-    let pendingDelete = null;
+</div>
 
-    document.querySelectorAll('.pet-tab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.pet-tab').forEach(b => {
-          b.classList.remove('pet-tab-active');
-          b.classList.add('pet-tab-inactive');
-          b.setAttribute('aria-selected', 'false');
-        });
-        btn.classList.remove('pet-tab-inactive');
-        btn.classList.add('pet-tab-active');
-        btn.setAttribute('aria-selected', 'true');
-        document.querySelectorAll('.pet-panel').forEach(p => p.classList.add('hidden'));
-        const panel = document.getElementById('pet-' + btn.dataset.pet);
-        if (panel) panel.classList.remove('hidden');
-      });
-    });
+<!-- ══════════════════ BLOOD SUGAR ══════════════════ -->
+<div class="tab-panel" id="tab-blood">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-blood">"I had a bad habit of missing blood sugar readings past."</div>
+  <div class="card">
+    <div class="card-title teal">💉 <span data-save="blood-title">Blood Sugar Tracker</span></div>
+    <div class="form-row">
+      <div class="form-group" style="margin:0">
+        <label>Reading (mg/dL)</label>
+        <input type="number" id="bs-value" class="bs-input" placeholder="0">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Notes</label>
+        <textarea id="bs-notes" placeholder="e.g. Before lunch" style="height:80px"></textarea>
+      </div>
+    </div>
+    <button class="btn btn-teal btn-full" onclick="logBlood()">Log Reading</button>
+    <div class="log-section" id="blood-log"></div>
+  </div>
+</div>
 
-    document.querySelectorAll('.budget-subtab').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.budget-subtab').forEach(b => {
-          b.classList.remove('budget-subtab-active');
-          b.setAttribute('aria-selected', 'false');
-        });
-        btn.classList.add('budget-subtab-active');
-        btn.setAttribute('aria-selected', 'true');
-        document.querySelectorAll('.budget-subtab-panel').forEach(p => p.classList.add('hidden'));
-        const panel = document.getElementById('budget-subtab-' + btn.dataset.subtab);
-        if (panel) panel.classList.remove('hidden');
-      });
-    });
+<!-- ══════════════════ FLOWERS ══════════════════ -->
+<div class="tab-panel" id="tab-flowers">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-flowers">"The show must go on." 🌸</div>
+  <div class="card">
+    <div class="photo-wrap" onclick="document.getElementById('flowersPhotoInput').click()">
+      <img id="flowersPhoto" src="https://images.pexels.com/photos/931177/pexels-photo-931177.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Flowers">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="flowersPhotoInput" accept="image/*" onchange="changePhoto('flowersPhoto','flowers_photo',event)">
+    </div>
+    <div class="card-title">🌺 <span data-save="flowers-title">Flower Tracker</span></div>
+    <div class="form-group">
+      <label>Flower Name</label>
+      <input type="text" id="flower-name" placeholder="e.g. Sunflower">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin:0">
+        <label>Date</label>
+        <input type="date" id="flower-date">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Time</label>
+        <input type="time" id="flower-time">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Location</label>
+      <input type="text" id="flower-location" placeholder="e.g. Backyard">
+    </div>
+    <div class="form-group">
+      <label>Allotment Used</label>
+      <input type="text" id="flower-allotment" placeholder="e.g. Bed 3">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="flower-notes" placeholder="How's it growing?"></textarea>
+    </div>
+    <button class="btn btn-orange btn-full" onclick="logFlower()">Log Flower</button>
+    <div class="log-section" id="flowers-log"></div>
+  </div>
+</div>
 
-    function showToast(id, msg, duration) {
-      const el = document.getElementById(id);
-      el.textContent = msg;
-      el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), duration || 2500);
+<!-- ══════════════════ NIGHTLY ══════════════════ -->
+<div class="tab-panel" id="tab-nightly">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="card">
+    <div class="card-title teal">🌙 <span data-save="nightly-title">Nightly Dose</span></div>
+    <div class="form-group">
+      <label>Amount</label>
+      <input type="text" id="nightly-amount" placeholder="e.g. 2 capsules">
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="nightly-date">
+    </div>
+    <div class="form-group">
+      <label>How are you feeling? <span id="feeling-val" style="color:#f97316;font-weight:700;">5</span>/10</label>
+      <div class="range-wrap">
+        <input type="range" id="nightly-feeling" min="1" max="10" value="5" oninput="document.getElementById('feeling-val').textContent=this.value">
+      </div>
+      <div class="range-labels"><span>Worst</span><span>Best</span></div>
+    </div>
+    <button class="btn btn-teal btn-full" onclick="logNightly()">Log Dose</button>
+    <div class="log-section" id="nightly-log"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ BOOKS ══════════════════ -->
+<div class="tab-panel" id="tab-books">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-books">"A reader lives a thousand lives before he dies."</div>
+  <div class="card">
+    <div class="photo-wrap" onclick="document.getElementById('booksPhotoInput').click()">
+      <img id="booksPhoto" src="https://images.pexels.com/photos/1130980/pexels-photo-1130980.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Books">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="booksPhotoInput" accept="image/*" onchange="changePhoto('booksPhoto','books_photo',event)">
+    </div>
+    <div class="card-title">📚 <span data-save="books-title">Book Tracker</span></div>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="book-title" placeholder="e.g. The Midnight Library">
+    </div>
+    <div class="form-group">
+      <label>Author</label>
+      <input type="text" id="book-author" placeholder="e.g. Matt Haig">
+    </div>
+    <div class="form-group">
+      <label>Status</label>
+      <select id="book-status">
+        <option value="want-to-read">Want to Read</option>
+        <option value="reading">Currently Reading</option>
+        <option value="completed">Completed ✓</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Your Thoughts</label>
+      <textarea id="book-notes" placeholder="Your thoughts..."></textarea>
+    </div>
+    <button class="btn btn-orange btn-full" onclick="logBook()">Add Book</button>
+    <div class="log-section" id="books-log"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ MUSIC ══════════════════ -->
+<div class="tab-panel" id="tab-music">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-music">"Music is the soundtrack to my life." 🎶</div>
+  <div class="card">
+    <div class="card-title">🎵 <span data-save="music-title">Album Collection</span></div>
+    <div class="form-group">
+      <label>Album Name</label>
+      <input type="text" id="album-name" placeholder="e.g. Midnights">
+    </div>
+    <div class="form-group">
+      <label>Artist</label>
+      <input type="text" id="artist-name" placeholder="e.g. Taylor Swift">
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="margin:0">
+        <label>Cover Emoji</label>
+        <input type="text" id="cover-emoji" placeholder="🎵" maxlength="2">
+      </div>
+      <div class="form-group" style="margin:0">
+        <label>Physical Media</label>
+        <select id="physical-media">
+          <option value="">Select type</option>
+          <option value="vinyl">Vinyl Record</option>
+          <option value="cd">CD</option>
+          <option value="cassette">Cassette</option>
+          <option value="digital">Digital Only</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="album-signed" style="width:auto">
+      <label for="album-signed" style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;">Signed?</label>
+    </div>
+    <div class="form-group">
+      <label>Your Thoughts</label>
+      <textarea id="music-notes" placeholder="Your thoughts..."></textarea>
+    </div>
+    <button class="btn btn-orange btn-full" onclick="logMusic()">Add Album</button>
+    <div class="log-section" id="music-log"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ PETS ══════════════════ -->
+<div class="tab-panel" id="tab-pets">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="quote-card" data-save="quote-pets">"Pets are not our whole life, but they make our lives whole."</div>
+  <div class="pet-nav">
+    <button class="pet-btn active" data-pet="blair">🐈 Blair</button>
+    <button class="pet-btn" data-pet="tessa">🐕 Tessa</button>
+    <button class="pet-btn" data-pet="zoey">🐾 Zoey</button>
+    <button class="pet-btn" data-pet="maximus">🐈‍⬛ Maximus</button>
+  </div>
+
+  <!-- Blair -->
+  <div class="pet-panel active card" id="pet-blair">
+    <div class="photo-wrap" onclick="document.getElementById('blairPhotoInput').click()">
+      <img id="blairPhoto" src="https://images.pexels.com/photos/19142219/pexels-photo-19142219.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Blair">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="blairPhotoInput" accept="image/*" onchange="changePhoto('blairPhoto','blair_photo',event)">
+    </div>
+    <div class="card-title teal">Blair</div>
+    <div class="form-group">
+      <label>Reminder Type</label>
+      <select id="blair-type">
+        <option value="feeding">Feeding</option>
+        <option value="vet">Vet Appointment</option>
+        <option value="grooming">Grooming</option>
+        <option value="playtime">Playtime</option>
+        <option value="medication">Medication</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Date</label>
+      <input type="date" id="blair-date">
+    </div>
+    <div class="form-group">
+      <label>Details</label>
+      <textarea id="blair-notes" placeholder="Details..."></textarea>
+    </div>
+    <button class="btn btn-teal btn-full" onclick="logPet('blair')">Add Reminder</button>
+    <div class="log-section" id="blair-log"></div>
+  </div>
+
+  <!-- Tessa -->
+  <div class="pet-panel card" id="pet-tessa">
+    <div class="photo-wrap" onclick="document.getElementById('tessaPhotoInput').click()">
+      <img id="tessaPhoto" src="https://images.pexels.com/photos/1571076/pexels-photo-1571076.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Tessa">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="tessaPhotoInput" accept="image/*" onchange="changePhoto('tessaPhoto','tessa_photo',event)">
+    </div>
+    <div class="card-title teal">Tessa</div>
+    <div class="form-group"><label>Reminder Type</label><select id="tessa-type"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="medication">Medication</option><option value="other">Other</option></select></div>
+    <div class="form-group"><label>Date</label><input type="date" id="tessa-date"></div>
+    <div class="form-group"><label>Details</label><textarea id="tessa-notes" placeholder="Details..."></textarea></div>
+    <button class="btn btn-teal btn-full" onclick="logPet('tessa')">Add Reminder</button>
+    <div class="log-section" id="tessa-log"></div>
+  </div>
+
+  <!-- Zoey -->
+  <div class="pet-panel card" id="pet-zoey">
+    <div class="photo-wrap" onclick="document.getElementById('zoeyPhotoInput').click()">
+      <img id="zoeyPhoto" src="https://images.pexels.com/photos/6557017/pexels-photo-6557017.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Zoey">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="zoeyPhotoInput" accept="image/*" onchange="changePhoto('zoeyPhoto','zoey_photo',event)">
+    </div>
+    <div class="card-title teal">Zoey</div>
+    <div class="form-group"><label>Reminder Type</label><select id="zoey-type"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="medication">Medication</option><option value="other">Other</option></select></div>
+    <div class="form-group"><label>Date</label><input type="date" id="zoey-date"></div>
+    <div class="form-group"><label>Details</label><textarea id="zoey-notes" placeholder="Details..."></textarea></div>
+    <button class="btn btn-teal btn-full" onclick="logPet('zoey')">Add Reminder</button>
+    <div class="log-section" id="zoey-log"></div>
+  </div>
+
+  <!-- Maximus -->
+  <div class="pet-panel card" id="pet-maximus">
+    <div class="photo-wrap" onclick="document.getElementById('maximusPhotoInput').click()">
+      <img id="maximusPhoto" src="https://images.pexels.com/photos/4695939/pexels-photo-4695939.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Maximus">
+      <div class="photo-overlay">📷 Change Photo</div>
+      <input type="file" id="maximusPhotoInput" accept="image/*" onchange="changePhoto('maximusPhoto','maximus_photo',event)">
+    </div>
+    <div class="card-title teal">Maximus</div>
+    <div class="form-group"><label>Reminder Type</label><select id="maximus-type"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="medication">Medication</option><option value="other">Other</option></select></div>
+    <div class="form-group"><label>Date</label><input type="date" id="maximus-date"></div>
+    <div class="form-group"><label>Details</label><textarea id="maximus-notes" placeholder="Details..."></textarea></div>
+    <button class="btn btn-teal btn-full" onclick="logPet('maximus')">Add Reminder</button>
+    <div class="log-section" id="maximus-log"></div>
+  </div>
+</div>
+
+<!-- ══════════════════ BUDGET ══════════════════ -->
+<div class="tab-panel" id="tab-budget">
+  <div class="edit-hint">✎ Click any text to edit it</div>
+  <div class="subtab-nav">
+    <button class="subtab-btn active" data-subtab="expenses">💳 Expenses</button>
+    <button class="subtab-btn" data-subtab="income">💰 Income</button>
+    <button class="subtab-btn" data-subtab="bills">📅 Bills</button>
+    <button class="subtab-btn" data-subtab="goals">🎯 Goals</button>
+    <button class="subtab-btn" data-subtab="calendar">📆 Calendar</button>
+  </div>
+
+  <!-- Expenses -->
+  <div class="subtab-panel active" id="subtab-expenses">
+    <div class="quote-card" data-save="quote-budget">"Money is a tool. Used properly, it makes you free." 💸</div>
+    <div class="card">
+      <div class="photo-wrap" onclick="document.getElementById('budgetPhotoInput').click()">
+        <img id="budgetPhoto" src="https://images.pexels.com/photos/3943716/pexels-photo-3943716.jpeg?auto=compress&cs=tinysrgb&w=800" alt="Budget">
+        <div class="photo-overlay">📷 Change Photo</div>
+        <input type="file" id="budgetPhotoInput" accept="image/*" onchange="changePhoto('budgetPhoto','budget_photo',event)">
+      </div>
+      <div class="card-title">💳 <span data-save="expenses-title">Expenses</span></div>
+      <div class="form-group"><label>Category</label><input type="text" id="expense-category" placeholder="e.g. Groceries"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0"><label>Amount ($)</label><input type="number" id="expense-amount" placeholder="0.00" step="0.01"></div>
+        <div class="form-group" style="margin:0"><label>Date</label><input type="date" id="expense-date"></div>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="expense-notes" placeholder="Optional notes..."></textarea></div>
+      <button class="btn btn-orange btn-full" onclick="logExpense()">Log Expense</button>
+      <div class="log-section" id="expenses-log"></div>
+    </div>
+  </div>
+
+  <!-- Income -->
+  <div class="subtab-panel" id="subtab-income">
+    <div class="card">
+      <div class="card-title teal">💰 <span data-save="income-title">Income Tracker</span></div>
+      <div class="form-group"><label>Source</label><input type="text" id="income-source" placeholder="e.g. Salary"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0"><label>Amount ($)</label><input type="number" id="income-amount" placeholder="0.00" step="0.01"></div>
+        <div class="form-group" style="margin:0"><label>Date</label><input type="date" id="income-date"></div>
+      </div>
+      <div class="form-group">
+        <label>Frequency</label>
+        <select id="income-frequency">
+          <option value="once">One-time</option>
+          <option value="weekly">Weekly</option>
+          <option value="biweekly">Bi-weekly</option>
+          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="income-notes" placeholder="Optional notes..."></textarea></div>
+      <button class="btn btn-teal btn-full" onclick="logIncome()">Log Income</button>
+      <div class="log-section" id="income-log"></div>
+    </div>
+  </div>
+
+  <!-- Bills -->
+  <div class="subtab-panel" id="subtab-bills">
+    <div class="card">
+      <div class="card-title">📅 <span data-save="bills-title">Bills &amp; Due Dates</span></div>
+      <div class="form-group"><label>Bill Name</label><input type="text" id="bill-name" placeholder="e.g. Electric Bill"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0"><label>Amount ($)</label><input type="number" id="bill-amount" placeholder="0.00" step="0.01"></div>
+        <div class="form-group" style="margin:0"><label>Due Date</label><input type="date" id="bill-due"></div>
+      </div>
+      <div class="form-group">
+        <label>Frequency</label>
+        <select id="bill-frequency">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+          <option value="once">One-time</option>
+        </select>
+      </div>
+      <div class="form-group" style="display:flex;align-items:center;gap:8px;">
+        <input type="checkbox" id="bill-paid" style="width:auto">
+        <label for="bill-paid" style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;">Already Paid?</label>
+      </div>
+      <div class="form-group"><label>Notes</label><textarea id="bill-notes" placeholder="Optional notes..."></textarea></div>
+      <button class="btn btn-orange btn-full" onclick="logBill()">Add Bill</button>
+      <div class="log-section" id="bills-log"></div>
+    </div>
+  </div>
+
+  <!-- Goals -->
+  <div class="subtab-panel" id="subtab-goals">
+    <div class="card">
+      <div class="card-title teal">🎯 <span data-save="goals-title">Savings Goals</span></div>
+      <div class="form-group"><label>Goal Name</label><input type="text" id="goal-name" placeholder="e.g. Vacation Fund"></div>
+      <div class="form-row">
+        <div class="form-group" style="margin:0"><label>Target ($)</label><input type="number" id="goal-target" placeholder="0.00" step="0.01"></div>
+        <div class="form-group" style="margin:0"><label>Saved So Far ($)</label><input type="number" id="goal-saved" placeholder="0.00" step="0.01"></div>
+      </div>
+      <div class="form-group"><label>Target Date</label><input type="date" id="goal-deadline"></div>
+      <div class="form-group"><label>Motivation</label><textarea id="goal-notes" placeholder="Why does this matter?"></textarea></div>
+      <button class="btn btn-teal btn-full" onclick="logGoal()">Create Goal</button>
+      <div class="log-section" id="goals-log"></div>
+    </div>
+  </div>
+
+  <!-- Calendar -->
+  <div class="subtab-panel" id="subtab-calendar">
+    <div class="card">
+      <div class="card-title">📆 <span data-save="calendar-title">Mini Calendar</span></div>
+      <div class="cal-header">
+        <button class="btn btn-ghost btn-sm" onclick="calNav(-1)">◀</button>
+        <div class="cal-month" id="cal-month-display"></div>
+        <button class="btn btn-ghost btn-sm" onclick="calNav(1)">▶</button>
+      </div>
+      <div id="cal-grid"></div>
+      <div class="log-section" id="cal-events"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<!-- Edit FAB -->
+<button class="edit-fab" id="editFab" onclick="toggleEdit()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  Edit Mode
+</button>
+
+<!-- Delete Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal">
+    <p>Delete this entry?</p>
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── GLITTER GENERATION ─────────────────────────────────────────────────────
+(function() {
+  const wrap = document.getElementById('glitterWrap');
+  const colors = ['#f97316','#fb923c','#fed7aa','#14b8a6','#2dd4bf','#99f6e4','#fbbf24'];
+  for (let i = 0; i < 30; i++) {
+    const g = document.createElement('div');
+    g.className = 'g';
+    const size = Math.random() * 5 + 3;
+    g.style.cssText = `
+      width:${size}px;height:${size}px;
+      top:${Math.random()*100}%;left:${Math.random()*100}%;
+      background:${colors[Math.floor(Math.random()*colors.length)]};
+      animation-delay:${Math.random()*3}s;
+      animation-duration:${1.5+Math.random()*2}s;
+    `;
+    wrap.appendChild(g);
+  }
+})();
+
+// ── STORAGE HELPERS ────────────────────────────────────────────────────────
+const S = {
+  get: k => { try { return JSON.parse(localStorage.getItem('gh_'+k)) } catch { return null } },
+  set: (k,v) => localStorage.setItem('gh_'+k, JSON.stringify(v)),
+  getArr: k => S.get(k) || [],
+  push: (k,v) => { const a = S.getArr(k); a.unshift(v); S.set(k,a); return a; },
+  remove: (k,id) => { const a = S.getArr(k).filter(e=>e.id!==id); S.set(k,a); return a; }
+};
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function toast(msg, type='success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ── DATE HELPERS ───────────────────────────────────────────────────────────
+function fmtDate(iso) {
+  if (!iso) return '';
+  try {
+    return new Date(iso).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+  } catch { return iso; }
+}
+function fmtDateShort(iso) {
+  if (!iso) return '';
+  try { return new Date(iso+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+  catch { return iso; }
+}
+
+// ── TAB SWITCHING ──────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+// Subtabs
+document.querySelectorAll('.subtab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.subtab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('subtab-'+btn.dataset.subtab).classList.add('active');
+    if (btn.dataset.subtab === 'calendar') renderCalendar();
+  });
+});
+
+// Pet tabs
+document.querySelectorAll('.pet-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.pet-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.pet-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('pet-'+btn.dataset.pet).classList.add('active');
+  });
+});
+
+// ── EDIT MODE ──────────────────────────────────────────────────────────────
+let editing = false;
+
+function toggleEdit() {
+  editing = !editing;
+  const fab = document.getElementById('editFab');
+  fab.classList.toggle('on', editing);
+  fab.innerHTML = editing
+    ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Done'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Edit Mode';
+  document.body.classList.toggle('editing', editing);
+  document.querySelectorAll('[data-save]').forEach(el => {
+    el.contentEditable = editing ? 'true' : 'false';
+    if (!editing) S.set('txt_'+el.dataset.save, el.innerHTML);
+  });
+}
+
+function loadTextEdits() {
+  document.querySelectorAll('[data-save]').forEach(el => {
+    const saved = S.get('txt_'+el.dataset.save);
+    if (saved) el.innerHTML = saved;
+  });
+}
+
+// ── PHOTO CHANGE ───────────────────────────────────────────────────────────
+function changePhoto(imgId, storeKey, event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById(imgId).src = e.target.result;
+    S.set('photo_'+storeKey, e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadPhotos() {
+  const photos = {
+    'profilePhoto':'profile_photo','flowersPhoto':'flowers_photo',
+    'booksPhoto':'books_photo','budgetPhoto':'budget_photo',
+    'blairPhoto':'blair_photo','tessaPhoto':'tessa_photo',
+    'zoeyPhoto':'zoey_photo','maximusPhoto':'maximus_photo'
+  };
+  Object.entries(photos).forEach(([imgId, key]) => {
+    const saved = S.get('photo_'+key);
+    if (saved) document.getElementById(imgId).src = saved;
+  });
+}
+
+// ── PROFILE ────────────────────────────────────────────────────────────────
+function saveProfile() {
+  const profile = {
+    name: document.getElementById('pf-name').value,
+    age: document.getElementById('pf-age').value,
+    weight: document.getElementById('pf-weight').value,
+    height: document.getElementById('pf-height').value,
+  };
+  S.set('profile', profile);
+  toast('Profile saved! ✨');
+}
+
+function loadProfile() {
+  const p = S.get('profile');
+  if (!p) return;
+  document.getElementById('pf-name').value = p.name || '';
+  document.getElementById('pf-age').value = p.age || '';
+  document.getElementById('pf-weight').value = p.weight || '';
+  document.getElementById('pf-height').value = p.height || '';
+}
+
+// ── LOG RENDERER ───────────────────────────────────────────────────────────
+function renderLog(containerId, entries, rowFn) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  if (!entries.length) {
+    c.innerHTML = '<div class="log-empty">No entries yet ✨</div>';
+    return;
+  }
+  c.innerHTML = `<div class="log-section-title">Recent Entries</div>` +
+    entries.map(e => `
+      <div class="log-entry ${rowFn.accent ? rowFn.accent(e) : ''}">
+        <div class="log-entry-main">${rowFn.render(e)}</div>
+        <div class="log-entry-actions">
+          <button class="del-btn" onclick="deleteEntry('${rowFn.key}','${e.id}','${containerId}',${JSON.stringify(rowFn)})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        </div>
+      </div>
+    `).join('');
+}
+
+// ── DELETE ─────────────────────────────────────────────────────────────────
+let pendingDelete = null;
+
+function deleteEntry(key, id, containerId, rowFn) {
+  pendingDelete = { key, id, containerId, rowFn };
+  document.getElementById('deleteModal').classList.add('open');
+}
+
+function confirmDelete() {
+  if (!pendingDelete) return;
+  const { key, id, containerId, rowFn } = pendingDelete;
+  const entries = S.remove(key, id);
+  renderLog(containerId, entries, rowFn);
+  closeDeleteModal();
+  toast('Entry deleted.');
+}
+
+function closeDeleteModal() {
+  pendingDelete = null;
+  document.getElementById('deleteModal').classList.remove('open');
+}
+
+// ── MEALS ──────────────────────────────────────────────────────────────────
+function logEntry(key, nameId, notesId) {
+  const name = document.getElementById(nameId).value.trim();
+  if (!name) { toast('Please fill in the name.', 'error'); return; }
+  const entry = { id: Date.now(), name, notes: document.getElementById(notesId).value.trim(), date: new Date().toISOString() };
+  const entries = S.push(key, entry);
+  const rowFn = mealRowFn(key);
+  renderLog(key+'-log', entries, rowFn);
+  document.getElementById(nameId).value = '';
+  document.getElementById(notesId).value = '';
+  toast('Logged! ✨');
+}
+
+function mealRowFn(key) {
+  return {
+    key,
+    render: e => `
+      <div class="log-entry-name">${e.name}</div>
+      ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+      <div class="log-entry-sub">${fmtDate(e.date)}</div>
+    `
+  };
+}
+
+// ── BLOOD SUGAR ────────────────────────────────────────────────────────────
+const bsRowFn = {
+  key: 'blood',
+  render: e => {
+    const v = parseFloat(e.value);
+    let flag = '', accent = 'bs-ok';
+    if (!isNaN(v)) {
+      if (v > 180) { flag = '<span class="bs-flag bs-high">HIGH 🔴</span>'; }
+      else if (v < 79) { flag = '<span class="bs-flag bs-low">LOW 💙</span>'; }
+      else { flag = '<span class="bs-flag bs-ok">IN RANGE ✓</span>'; }
     }
+    return `
+      <div class="log-entry-name">${e.value} mg/dL ${flag}</div>
+      ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+      <div class="log-entry-sub">${fmtDate(e.date)}</div>
+    `;
+  },
+  accent: e => {
+    const v = parseFloat(e.value);
+    if (!isNaN(v)) { if (v > 180) return 'red-accent'; if (v < 79) return 'blue-accent'; }
+    return 'teal-accent';
+  }
+};
 
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => {
-          b.classList.remove('tab-active');
-          b.classList.add('tab-inactive');
-          b.setAttribute('aria-selected', 'false');
-        });
-        btn.classList.remove('tab-inactive');
-        btn.classList.add('tab-active');
-        btn.setAttribute('aria-selected', 'true');
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-        const panel = document.getElementById('tab-' + btn.dataset.tab);
-        if (panel) panel.classList.remove('hidden');
-        document.getElementById('budget-subtabs').classList.toggle('hidden', btn.dataset.tab !== 'budget');
-      });
-    });
+function logBlood() {
+  const val = document.getElementById('bs-value').value.trim();
+  if (!val) { toast('Please enter a reading.', 'error'); return; }
+  const entry = { id: Date.now(), value: val, notes: document.getElementById('bs-notes').value.trim(), date: new Date().toISOString() };
+  const entries = S.push('blood', entry);
+  renderLog('blood-log', entries, bsRowFn);
+  document.getElementById('bs-value').value = '';
+  document.getElementById('bs-notes').value = '';
+  toast('Reading logged! 💉');
+}
 
-    function formatDate(iso) {
-      if (!iso) return '';
-      try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
-      catch { return iso; }
-    }
+// ── FLOWERS ────────────────────────────────────────────────────────────────
+const flowerRowFn = {
+  key: 'flowers',
+  render: e => `
+    <div class="log-entry-name">🌺 ${e.name}</div>
+    <div class="log-entry-sub">${[e.location, e.allotment].filter(Boolean).join(' · ')}</div>
+    ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+    <div class="log-entry-sub">${e.date ? fmtDateShort(e.date) : ''}${e.time ? ' at ' + e.time : ''}</div>
+  `
+};
 
-    function escapeHtml(str) {
-      const d = document.createElement('div');
-      d.textContent = str || '';
-      return d.innerHTML;
-    }
+function logFlower() {
+  const name = document.getElementById('flower-name').value.trim();
+  if (!name) { toast('Please enter a flower name.', 'error'); return; }
+  const entry = {
+    id: Date.now(), name,
+    date: document.getElementById('flower-date').value,
+    time: document.getElementById('flower-time').value,
+    location: document.getElementById('flower-location').value.trim(),
+    allotment: document.getElementById('flower-allotment').value.trim(),
+    notes: document.getElementById('flower-notes').value.trim(),
+  };
+  const entries = S.push('flowers', entry);
+  renderLog('flowers-log', entries, flowerRowFn);
+  ['flower-name','flower-date','flower-time','flower-location','flower-allotment','flower-notes'].forEach(id => document.getElementById(id).value = '');
+  toast('Flower logged! 🌺');
+}
 
-    function renderList(containerId, emptyId, records, labelFn, classFn) {
-      const c = document.getElementById(containerId);
-      const empty = document.getElementById(emptyId);
-      if (!c || !empty) return;
-      const existing = new Map([...c.children].map(el => [el.dataset.rid, el]));
-      const ids = new Set();
-      records.forEach(r => {
-        const rid = r.__backendId;
-        ids.add(rid);
-        const label = labelFn(r);
-        const dateStr = formatDate(r.date);
-        const className = classFn ? classFn(r) : '';
-        if (existing.has(rid)) {
-          const el = existing.get(rid);
-          const labelEl = el.querySelector('.rec-label');
-          const dateEl = el.querySelector('.rec-date');
-          if (labelEl) labelEl.textContent = label;
-          if (dateEl) dateEl.textContent = dateStr;
-          el.classList.remove('flag-high', 'flag-low');
-          if (className) el.classList.add(className);
-        } else {
-          const div = document.createElement('div');
-          div.className = `record-item flex justify-between items-start ${className}`;
-          div.dataset.rid = rid;
-          div.innerHTML = `<div class="flex-1 min-w-0"><span class="rec-label font-medium text-white break-words">${escapeHtml(label)}</span><br><span class="rec-date text-xs opacity-60 text-teal-200">${escapeHtml(dateStr)}</span></div><button class="del-btn text-orange-300 hover:text-red-400 ml-2 flex-shrink-0" type="button" aria-label="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
-          div.querySelector('.del-btn').addEventListener('click', () => confirmDelete(r));
-          c.appendChild(div);
-        }
-      });
-      existing.forEach((el, id) => { if (!ids.has(id)) el.remove(); });
-      empty.style.display = records.length ? 'none' : 'block';
-      lucide.createIcons();
-    }
+// ── NIGHTLY ────────────────────────────────────────────────────────────────
+const nightlyRowFn = {
+  key: 'nightly',
+  render: e => `
+    <div class="log-entry-name">🌙 ${e.amount}</div>
+    <div class="log-entry-sub">Feeling: <strong style="color:#f97316">${e.feeling}/10</strong></div>
+    <div class="log-entry-sub">${e.date ? fmtDateShort(e.date) : ''}</div>
+  `
+};
 
-    function confirmDelete(record) {
-      pendingDelete = record;
-      document.getElementById('delete-confirm').classList.remove('hidden');
-    }
+function logNightly() {
+  const amount = document.getElementById('nightly-amount').value.trim();
+  const date = document.getElementById('nightly-date').value;
+  if (!amount || !date) { toast('Please fill in amount and date.', 'error'); return; }
+  const entry = { id: Date.now(), amount, date, feeling: document.getElementById('nightly-feeling').value };
+  const entries = S.push('nightly', entry);
+  renderLog('nightly-log', entries, nightlyRowFn);
+  document.getElementById('nightly-amount').value = '';
+  document.getElementById('nightly-date').value = '';
+  document.getElementById('nightly-feeling').value = 5;
+  document.getElementById('feeling-val').textContent = '5';
+  toast('Dose logged! 🌙');
+}
 
-    document.getElementById('confirm-no').addEventListener('click', () => {
-      pendingDelete = null;
-      document.getElementById('delete-confirm').classList.add('hidden');
-    });
+// ── BOOKS ──────────────────────────────────────────────────────────────────
+const statusLabels = { 'want-to-read': '📖 Want to Read', 'reading': '📗 Reading', 'completed': '✅ Completed' };
+const statusColors = { 'want-to-read': 'badge-orange', 'reading': 'badge-teal', 'completed': 'badge-blue' };
 
-    document.getElementById('confirm-yes').addEventListener('click', async () => {
-      if (!pendingDelete) return;
-      const btn = document.getElementById('confirm-yes');
-      btn.disabled = true; btn.textContent = '...';
-      const res = await window.dataSdk.delete(pendingDelete);
-      btn.disabled = false; btn.textContent = 'Delete';
-      document.getElementById('delete-confirm').classList.add('hidden');
-      if (res.isError) showToast('error-toast', 'Failed to delete. Please try again.');
-      pendingDelete = null;
-    });
+const bookRowFn = {
+  key: 'books',
+  render: e => `
+    <div class="log-entry-name">${e.title}</div>
+    ${e.author ? `<div class="log-entry-sub">by ${e.author}</div>` : ''}
+    <div><span class="log-entry-badge ${statusColors[e.status] || 'badge-orange'}">${statusLabels[e.status] || e.status}</span></div>
+    ${e.notes ? `<div class="log-entry-sub" style="margin-top:4px">${e.notes}</div>` : ''}
+  `
+};
 
-    const handler = {
-      onDataChanged(data) {
-        allData = data;
-        profileRecord = data.find(d => d.type === 'profile') || null;
-        if (profileRecord) {
-          document.getElementById('pf-name').value = profileRecord.name || '';
-          const parts = profileRecord.value ? profileRecord.value.split('|') : [];
-          document.getElementById('pf-age').value = parts[0] || '';
-          document.getElementById('pf-weight').value = parts[1] || '';
-          document.getElementById('pf-height').value = parts[2] || '';
-        }
-        const byDate = (a, b) => (b.date || '').localeCompare(a.date || '');
-        const meals = data.filter(d => d.type === 'meal').sort(byDate);
-        const bloods = data.filter(d => d.type === 'blood_sugar').sort(byDate);
-        const flowers = data.filter(d => d.type === 'flower').sort(byDate);
-        const nightly = data.filter(d => d.type === 'nightly_dose').sort(byDate);
-        const books = data.filter(d => d.type === 'book').sort(byDate);
-        const pets_blair = data.filter(d => d.type === 'pet_reminder' && d.category === 'blair').sort(byDate);
-        const pets_tessa = data.filter(d => d.type === 'pet_reminder' && d.category === 'tessa').sort(byDate);
-        const pets_zoey = data.filter(d => d.type === 'pet_reminder' && d.category === 'zoey').sort(byDate);
-        const pets_maximus = data.filter(d => d.type === 'pet_reminder' && d.category === 'maximus').sort(byDate);
-        const expenses = data.filter(d => d.type === 'expense').sort(byDate);
-        const income = data.filter(d => d.type === 'income').sort(byDate);
-        const bills = data.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''));
-        const goals = data.filter(d => d.type === 'savings_goal').sort(byDate);
-        const music = data.filter(d => d.type === 'album').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+function logBook() {
+  const title = document.getElementById('book-title').value.trim();
+  if (!title) { toast('Please enter a title.', 'error'); return; }
+  const entry = {
+    id: Date.now(), title, author: document.getElementById('book-author').value.trim(),
+    status: document.getElementById('book-status').value,
+    notes: document.getElementById('book-notes').value.trim(),
+  };
+  const entries = S.push('books', entry);
+  renderLog('books-log', entries, bookRowFn);
+  ['book-title','book-author','book-notes'].forEach(id => document.getElementById(id).value = '');
+  toast('Book added! 📚');
+}
 
-        renderList('meal-list', 'meal-empty', meals, r => r.notes ? `${r.name} — ${r.notes}` : r.name || 'Meal');
-        renderList('blood-list', 'blood-empty', bloods, r => {
-          const v = parseFloat(r.value);
-          const l = `${r.value || '?'} mg/dL${r.notes ? ' — ' + r.notes : ''}`;
-          if (!isNaN(v)) {
-            if (v > 180) return `${l} 🔴 OH, OH, OOOO MY LORD!`;
-            if (v < 79) return `${l} 💙 Never seen a blood sugar like you before!`;
-          }
-          return l;
-        }, r => {
-          const v = parseFloat(r.value);
-          if (!isNaN(v)) { if (v > 180) return 'flag-high'; if (v < 79) return 'flag-low'; }
-          return '';
-        });
-        renderList('flower-list', 'flower-empty', flowers, r => {
-          let l = r.name || 'Flower';
-          if (r.value) { const p = r.value.split('|'); if (p[0]) l += ` • ${p[0]}`; if (p[1]) l += ` (${p[1]})`; }
-          return r.notes ? `${l} — ${r.notes}` : l;
-        });
-        renderList('nightly-list', 'nightly-empty', nightly, r => `${r.name || 'Dose'} • Feeling: ${r.value || '?'}/10`);
-        renderList('books-list', 'books-empty', books, r => {
-          const author = r.value ? ` by ${r.value}` : '';
-          return r.notes ? `${r.name || 'Book'}${author} — ${r.notes}` : (r.name || 'Book') + author;
-        });
-        renderList('music-list', 'music-empty', music, r => {
-          const p = r.value ? r.value.split('|') : ['', '', ''];
-          return `${r.name || 'Album'}${p[0] ? ' • ' + p[0] : ''}${p[1] ? ' [' + p[1] + ']' : ''}${p[2] === 'true' ? ' ✓' : ''}${r.notes ? ' — ' + r.notes : ''}`;
-        });
-        renderList('blair-list', 'blair-empty', pets_blair, r => {
-          const p = r.value ? r.value.split('|') : ['', ''];
-          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
-        });
-        renderList('tessa-list', 'tessa-empty', pets_tessa, r => {
-          const p = r.value ? r.value.split('|') : ['', ''];
-          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
-        });
-        renderList('zoey-list', 'zoey-empty', pets_zoey, r => {
-          const p = r.value ? r.value.split('|') : ['', ''];
-          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
-        });
-        renderList('maximus-list', 'maximus-empty', pets_maximus, r => {
-          const p = r.value ? r.value.split('|') : ['', ''];
-          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
-        });
-        renderList('expense-list', 'expense-empty', expenses, r => {
-          const a = parseFloat(r.value); const s = isNaN(a) ? r.value : `$${a.toFixed(2)}`;
-          return `${r.name || 'Expense'} • ${s}${r.notes ? ' — ' + r.notes : ''}`;
-        });
-        renderList('income-list', 'income-empty', income, r => {
-          const p = r.value ? r.value.split('|') : ['', ''];
-          const a = parseFloat(p[0]); const s = isNaN(a) ? p[0] : `$${a.toFixed(2)}`;
-          return `${r.name || 'Income'} • ${s}${p[1] ? ' (' + p[1] + ')' : ''}${r.notes ? ' — ' + r.notes : ''}`;
-        });
-        renderList('bill-list', 'bill-empty', bills, r => {
-          const p = r.value ? r.value.split('|') : ['', '', ''];
-          const a = parseFloat(p[0]); const s = isNaN(a) ? p[0] : `$${a.toFixed(2)}`;
-          const paid = p[2] === 'true' ? ' ✓' : '';
-          return `${r.name || 'Bill'} • ${s}${paid}${r.notes ? ' — ' + r.notes : ''}`;
-        }, r => {
-          if (!r.due_date) return '';
-          const days = Math.ceil((new Date(r.due_date) - new Date()) / 86400000);
-          return days < 3 ? 'flag-high' : '';
-        });
-        renderList('goal-list', 'goal-empty', goals, r => {
-          const p = r.value ? r.value.split('|') : ['0', '0'];
-          const t = parseFloat(p[0]), sv = parseFloat(p[1]);
-          const pct = t > 0 ? Math.min(100, Math.round(sv / t * 100)) : 0;
-          return `${r.name || 'Goal'} • $${sv.toFixed(2)}/$${t.toFixed(2)} (${pct}%)${r.notes ? ' — ' + r.notes : ''}`;
-        });
-        renderMiniCalendar(bills, expenses, income);
-      }
-    };
+// ── MUSIC ──────────────────────────────────────────────────────────────────
+const mediaLabels = { vinyl: '🎶 Vinyl', cd: '💿 CD', cassette: '📼 Cassette', digital: '🎧 Digital' };
 
-    function checkLimit() {
-      if (allData.length >= 999) {
-        document.getElementById('limit-warning').classList.remove('hidden');
-        setTimeout(() => document.getElementById('limit-warning').classList.add('hidden'), 3000);
-        return false;
-      }
-      return true;
-    }
+const musicRowFn = {
+  key: 'music',
+  render: e => `
+    <div class="log-entry-name">${e.emoji || '🎵'} ${e.album}</div>
+    ${e.artist ? `<div class="log-entry-sub">by ${e.artist}</div>` : ''}
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+      ${e.media ? `<span class="log-entry-badge badge-teal">${mediaLabels[e.media] || e.media}</span>` : ''}
+      ${e.signed ? `<span class="log-entry-badge badge-orange">✍️ Signed</span>` : ''}
+    </div>
+    ${e.notes ? `<div class="log-entry-sub" style="margin-top:4px">${e.notes}</div>` : ''}
+  `
+};
 
-    function setBtnLoading(form, loading) {
-      const btn = form.querySelector('button[type=submit]');
-      if (!btn) return;
-      if (loading) { btn.dataset.originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Saving...'; }
-      else { btn.disabled = false; btn.textContent = btn.dataset.originalText || 'Save'; }
-    }
+function logMusic() {
+  const album = document.getElementById('album-name').value.trim();
+  if (!album) { toast('Please enter an album name.', 'error'); return; }
+  const entry = {
+    id: Date.now(), album, artist: document.getElementById('artist-name').value.trim(),
+    emoji: document.getElementById('cover-emoji').value.trim() || '🎵',
+    media: document.getElementById('physical-media').value,
+    signed: document.getElementById('album-signed').checked,
+    notes: document.getElementById('music-notes').value.trim(),
+  };
+  const entries = S.push('music', entry);
+  renderLog('music-log', entries, musicRowFn);
+  ['album-name','artist-name','cover-emoji','music-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('physical-media').value = '';
+  document.getElementById('album-signed').checked = false;
+  toast('Album added! 🎵');
+}
 
-    document.getElementById('profile-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const form = e.target; setBtnLoading(form, true);
-      const obj = { type: 'profile', name: document.getElementById('pf-name').value, value: [document.getElementById('pf-age').value, document.getElementById('pf-weight').value, document.getElementById('pf-height').value].join('|'), date: new Date().toISOString(), notes: '' };
-      const res = profileRecord ? await window.dataSdk.update({ ...profileRecord, ...obj }) : (checkLimit() ? await window.dataSdk.create(obj) : { isOk: false, isError: true });
-      setBtnLoading(form, false);
-      if (res.isOk) showToast('success-toast', 'Profile saved! ✨');
-      else showToast('error-toast', 'Failed to save profile.');
-    });
+// ── PETS ───────────────────────────────────────────────────────────────────
+const petEmoji = { feeding:'🍽️', vet:'🏥', grooming:'✂️', playtime:'🎾', medication:'💊', other:'📌' };
 
-    document.getElementById('meal-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'meal', name: document.getElementById('meal-name').value, value: '', date: new Date().toISOString(), notes: document.getElementById('meal-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Meal logged! 🍽️'); }
-      else showToast('error-toast', 'Failed to log meal.');
-    });
+function petRowFn(pet) {
+  return {
+    key: 'pet_'+pet,
+    render: e => `
+      <div class="log-entry-name">${petEmoji[e.type] || '📌'} ${e.type.charAt(0).toUpperCase()+e.type.slice(1)}</div>
+      ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+      <div class="log-entry-sub">${e.date ? fmtDateShort(e.date) : ''}</div>
+    `
+  };
+}
 
-    document.getElementById('blood-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'blood_sugar', name: 'Blood Sugar', value: document.getElementById('bs-value').value, date: new Date().toISOString(), notes: document.getElementById('bs-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Reading logged! 💉'); }
-      else showToast('error-toast', 'Failed to log reading.');
-    });
+function logPet(pet) {
+  const date = document.getElementById(pet+'-date').value;
+  if (!date) { toast('Please select a date.', 'error'); return; }
+  const entry = {
+    id: Date.now(),
+    type: document.getElementById(pet+'-type').value,
+    date, notes: document.getElementById(pet+'-notes').value.trim()
+  };
+  const entries = S.push('pet_'+pet, entry);
+  const rfn = petRowFn(pet);
+  renderLog(pet+'-log', entries, rfn);
+  document.getElementById(pet+'-date').value = '';
+  document.getElementById(pet+'-notes').value = '';
+  toast('Reminder added! 🐾');
+}
 
-    document.getElementById('flower-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const fd = document.getElementById('flower-date').value;
-      const ft = document.getElementById('flower-time').value;
-      const dt = ft ? `${fd}T${ft}` : `${fd}T00:00`;
-      const res = await window.dataSdk.create({ type: 'flower', name: document.getElementById('flower-name').value, value: [document.getElementById('flower-location').value, document.getElementById('flower-allotment').value].join('|'), date: new Date(dt).toISOString(), notes: document.getElementById('flower-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Flower logged! 🌺'); }
-      else showToast('error-toast', 'Failed to log flower.');
-    });
+// ── BUDGET: EXPENSES ───────────────────────────────────────────────────────
+const expenseRowFn = {
+  key: 'expenses',
+  render: e => `
+    <div class="log-entry-name">${e.category} — <strong style="color:#f97316">$${parseFloat(e.amount).toFixed(2)}</strong></div>
+    ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+    <div class="log-entry-sub">${e.date ? fmtDateShort(e.date) : fmtDate(e.logged)}</div>
+  `
+};
 
-    document.getElementById('nightly-feeling').addEventListener('input', e => {
-      document.getElementById('feeling-display').textContent = e.target.value;
-    });
+function logExpense() {
+  const category = document.getElementById('expense-category').value.trim();
+  const amount = document.getElementById('expense-amount').value;
+  if (!category || !amount) { toast('Please fill in category and amount.', 'error'); return; }
+  const entry = { id: Date.now(), category, amount, date: document.getElementById('expense-date').value, notes: document.getElementById('expense-notes').value.trim(), logged: new Date().toISOString() };
+  const entries = S.push('expenses', entry);
+  renderLog('expenses-log', entries, expenseRowFn);
+  ['expense-category','expense-amount','expense-date','expense-notes'].forEach(id => document.getElementById(id).value = '');
+  toast('Expense logged! 💳');
+}
 
-    document.getElementById('nightly-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const nd = document.getElementById('nightly-date').value;
-      const res = await window.dataSdk.create({ type: 'nightly_dose', name: document.getElementById('nightly-amount').value, value: document.getElementById('nightly-feeling').value, date: new Date(`${nd}T00:00`).toISOString(), notes: '' });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); document.getElementById('feeling-display').textContent = '5'; showToast('success-toast', 'Dose logged! 🌙'); }
-      else showToast('error-toast', 'Failed to log dose.');
-    });
+// ── BUDGET: INCOME ─────────────────────────────────────────────────────────
+const freqLabels = { once:'One-time', weekly:'Weekly', biweekly:'Bi-weekly', monthly:'Monthly', yearly:'Yearly' };
 
-    document.getElementById('books-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const status = document.getElementById('book-status').value;
-      const res = await window.dataSdk.create({ type: 'book', name: document.getElementById('book-title').value, value: document.getElementById('book-author').value, date: new Date().toISOString(), notes: `[${status}] ${document.getElementById('book-notes').value}` });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Book added! 📚'); }
-      else showToast('error-toast', 'Failed to add book.');
-    });
+const incomeRowFn = {
+  key: 'income',
+  render: e => `
+    <div class="log-entry-name">${e.source} — <strong style="color:#14b8a6">$${parseFloat(e.amount).toFixed(2)}</strong></div>
+    <div><span class="log-entry-badge badge-teal">${freqLabels[e.frequency] || e.frequency}</span></div>
+    ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+    <div class="log-entry-sub">${e.date ? fmtDateShort(e.date) : ''}</div>
+  `
+};
 
-    document.getElementById('music-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'album', name: document.getElementById('album-name').value, value: [document.getElementById('artist-name').value, document.getElementById('physical-media').value, document.getElementById('album-signed').checked.toString()].join('|'), date: new Date().toISOString(), notes: `${document.getElementById('cover-emoji').value} ${document.getElementById('music-notes').value}` });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); document.getElementById('album-signed').checked = false; showToast('success-toast', 'Album added! 🎵'); }
-      else showToast('error-toast', 'Failed to add album.');
-    });
+function logIncome() {
+  const source = document.getElementById('income-source').value.trim();
+  const amount = document.getElementById('income-amount').value;
+  if (!source || !amount) { toast('Please fill in source and amount.', 'error'); return; }
+  const entry = { id: Date.now(), source, amount, frequency: document.getElementById('income-frequency').value, date: document.getElementById('income-date').value, notes: document.getElementById('income-notes').value.trim() };
+  const entries = S.push('income', entry);
+  renderLog('income-log', entries, incomeRowFn);
+  ['income-source','income-amount','income-date','income-notes'].forEach(id => document.getElementById(id).value = '');
+  toast('Income recorded! 💰');
+}
 
-    ['blair', 'tessa', 'zoey', 'maximus'].forEach(pet => {
-      document.getElementById(pet + '-form').addEventListener('submit', async e => {
-        e.preventDefault(); if (!checkLimit()) return;
-        const form = e.target; setBtnLoading(form, true);
-        const rd = document.getElementById(pet + '-date').value;
-        const res = await window.dataSdk.create({ type: 'pet_reminder', category: pet, name: pet, value: `${document.getElementById(pet + '-type').value}|${document.getElementById(pet + '-notes').value}`, date: new Date(`${rd}T00:00`).toISOString(), notes: document.getElementById(pet + '-notes').value });
-        setBtnLoading(form, false);
-        if (res.isOk) { form.reset(); showToast('success-toast', 'Reminder added! 🐾'); }
-        else showToast('error-toast', 'Failed to add reminder.');
-      });
-    });
+// ── BUDGET: BILLS ──────────────────────────────────────────────────────────
+const billRowFn = {
+  key: 'bills',
+  render: e => {
+    const due = e.dueDate ? new Date(e.dueDate+'T12:00:00') : null;
+    const days = due ? Math.ceil((due - new Date()) / 86400000) : null;
+    const urgency = days !== null && days < 3 ? 'badge-red' : 'badge-orange';
+    return `
+      <div class="log-entry-name">${e.name} — <strong style="color:#f97316">$${parseFloat(e.amount).toFixed(2)}</strong> ${e.paid ? '✅' : ''}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px;">
+        ${e.dueDate ? `<span class="log-entry-badge ${urgency}">Due ${fmtDateShort(e.dueDate)}</span>` : ''}
+        <span class="log-entry-badge badge-teal">${freqLabels[e.frequency] || e.frequency}</span>
+      </div>
+      ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+    `;
+  },
+  accent: e => {
+    if (!e.dueDate) return '';
+    const days = Math.ceil((new Date(e.dueDate+'T12:00:00') - new Date()) / 86400000);
+    return days < 3 ? 'red-accent' : '';
+  }
+};
 
-    document.getElementById('expense-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'expense', category: 'expense', name: document.getElementById('expense-category').value, value: document.getElementById('expense-amount').value, date: new Date().toISOString(), notes: document.getElementById('expense-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Expense logged! 💳'); }
-      else showToast('error-toast', 'Failed to log expense.');
-    });
+function logBill() {
+  const name = document.getElementById('bill-name').value.trim();
+  const amount = document.getElementById('bill-amount').value;
+  if (!name || !amount) { toast('Please fill in name and amount.', 'error'); return; }
+  const entry = { id: Date.now(), name, amount, dueDate: document.getElementById('bill-due').value, frequency: document.getElementById('bill-frequency').value, paid: document.getElementById('bill-paid').checked, notes: document.getElementById('bill-notes').value.trim() };
+  const entries = S.push('bills', entry);
+  renderLog('bills-log', entries, billRowFn);
+  ['bill-name','bill-amount','bill-due','bill-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('bill-paid').checked = false;
+  toast('Bill added! 📅');
+}
 
-    document.getElementById('income-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'income', category: 'income', name: document.getElementById('income-source').value, value: [document.getElementById('income-amount').value, document.getElementById('income-frequency').value].join('|'), date: new Date().toISOString(), notes: document.getElementById('income-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Income recorded! 💰'); }
-      else showToast('error-toast', 'Failed to record income.');
-    });
+// ── BUDGET: GOALS ──────────────────────────────────────────────────────────
+const goalRowFn = {
+  key: 'goals',
+  render: e => {
+    const t = parseFloat(e.target), sv = parseFloat(e.saved);
+    const pct = t > 0 ? Math.min(100, Math.round(sv/t*100)) : 0;
+    return `
+      <div class="log-entry-name">🎯 ${e.name}</div>
+      <div class="log-entry-sub">$${sv.toFixed(2)} of $${t.toFixed(2)} — ${pct}%</div>
+      <div class="progress-bar-wrap"><div class="progress-bar" style="width:${pct}%"></div></div>
+      ${e.deadline ? `<div class="log-entry-sub" style="margin-top:4px">Target: ${fmtDateShort(e.deadline)}</div>` : ''}
+      ${e.notes ? `<div class="log-entry-sub">${e.notes}</div>` : ''}
+    `;
+  }
+};
 
-    document.getElementById('bill-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'bill', category: 'bill', name: document.getElementById('bill-name').value, value: [document.getElementById('bill-amount').value, document.getElementById('bill-frequency').value, document.getElementById('bill-paid').checked.toString()].join('|'), date: new Date().toISOString(), due_date: new Date(document.getElementById('bill-due').value).toISOString(), notes: document.getElementById('bill-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Bill added! 📅'); }
-      else showToast('error-toast', 'Failed to add bill.');
-    });
+function logGoal() {
+  const name = document.getElementById('goal-name').value.trim();
+  const target = document.getElementById('goal-target').value;
+  const saved = document.getElementById('goal-saved').value || '0';
+  if (!name || !target) { toast('Please fill in name and target.', 'error'); return; }
+  const entry = { id: Date.now(), name, target, saved, deadline: document.getElementById('goal-deadline').value, notes: document.getElementById('goal-notes').value.trim() };
+  const entries = S.push('goals', entry);
+  renderLog('goals-log', entries, goalRowFn);
+  ['goal-name','goal-target','goal-saved','goal-deadline','goal-notes'].forEach(id => document.getElementById(id).value = '');
+  toast('Goal created! 🎯');
+}
 
-    document.getElementById('goal-form').addEventListener('submit', async e => {
-      e.preventDefault(); if (!checkLimit()) return;
-      const form = e.target; setBtnLoading(form, true);
-      const res = await window.dataSdk.create({ type: 'savings_goal', category: 'goal', name: document.getElementById('goal-name').value, value: [document.getElementById('goal-target').value, document.getElementById('goal-saved').value].join('|'), date: new Date().toISOString(), due_date: new Date(document.getElementById('goal-deadline').value).toISOString(), notes: document.getElementById('goal-notes').value });
-      setBtnLoading(form, false);
-      if (res.isOk) { form.reset(); showToast('success-toast', 'Goal created! 🎯'); }
-      else showToast('error-toast', 'Failed to create goal.');
-    });
+// ── CALENDAR ───────────────────────────────────────────────────────────────
+let calDate = new Date();
 
-    let calendarMonth = new Date();
+function calNav(dir) {
+  calDate.setMonth(calDate.getMonth() + dir);
+  renderCalendar();
+}
 
-    function renderMiniCalendar(bills, expenses, income) {
-      const cal = document.getElementById('mini-calendar');
-      const events = document.getElementById('calendar-events');
-      const empty = document.getElementById('calendar-empty');
-      const monthDisplay = document.getElementById('cal-month-display');
-      if (!cal || !monthDisplay) return;
-      const year = calendarMonth.getFullYear(), month = calendarMonth.getMonth();
-      monthDisplay.textContent = calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const allEvents = [...bills, ...expenses, ...income];
-      let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;font-size:0.75rem;text-align:center">';
-      ['S','M','T','W','T','F','S'].forEach(d => { html += `<div style="font-weight:700;opacity:0.6;padding:0.25rem">${d}</div>`; });
-      for (let i = 0; i < firstDay; i++) html += '<div style="aspect-ratio:1;opacity:0.2">-</div>';
-      const today = new Date();
-      for (let day = 1; day <= daysInMonth; day++) {
-        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
-        const hasEvent = allEvents.some(e => ((e.due_date || e.date || '').split('T')[0]) === dateStr);
-        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-        html += `<div class="calendar-day ${isToday ? 'is-today' : (hasEvent ? 'has-event' : '')}">${day}</div>`;
-      }
-      html += '</div>';
-      cal.innerHTML = html;
-      const upcoming = [];
-      const firstDayOfMonth = new Date(year, month, 1);
-      const lastDayOfMonth = new Date(year, month + 1, 0);
-      for (let d = new Date(firstDayOfMonth); d <= lastDayOfMonth; d.setDate(d.getDate() + 1)) {
-        const ds = d.toISOString().split('T')[0];
-        allEvents.filter(e => ((e.due_date || e.date || '').split('T')[0]) === ds).forEach(e => upcoming.push({ date: new Date(d), event: e }));
-      }
-      if (upcoming.length === 0) { events.innerHTML = ''; empty.style.display = 'block'; }
-      else {
-        empty.style.display = 'none';
-        events.innerHTML = upcoming.map(({date, event}) => {
-          const emoji = event.type === 'bill' ? '📅' : (event.type === 'expense' ? '💳' : '💰');
-          const amt = event.value ? parseFloat(event.value.split('|')[0]) : NaN;
-          return `<div class="record-item flex justify-between items-start" style="margin-bottom:0.5rem"><div class="flex-1 min-w-0"><span class="font-medium text-white">${emoji} ${event.name || 'Event'}</span><br><span class="text-xs opacity-60">${date.toLocaleDateString()}${!isNaN(amt) ? ' • $' + amt.toFixed(2) : ''}</span></div></div>`;
-        }).join('');
-      }
-    }
+function renderCalendar() {
+  const y = calDate.getFullYear(), m = calDate.getMonth();
+  document.getElementById('cal-month-display').textContent =
+    calDate.toLocaleDateString('en-US',{month:'long',year:'numeric'});
 
-    document.getElementById('cal-prev').addEventListener('click', () => {
-      calendarMonth.setMonth(calendarMonth.getMonth() - 1);
-      renderMiniCalendar(
-        allData.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || '')),
-        allData.filter(d => d.type === 'expense'),
-        allData.filter(d => d.type === 'income')
-      );
-    });
+  const bills = S.getArr('bills');
+  const expenses = S.getArr('expenses');
+  const income = S.getArr('income');
+  const allEvents = [
+    ...bills.map(e => ({...e, _type:'bill', _date: e.dueDate})),
+    ...expenses.map(e => ({...e, _type:'expense', _date: e.date})),
+    ...income.map(e => ({...e, _type:'income', _date: e.date})),
+  ].filter(e => e._date);
 
-    document.getElementById('cal-next').addEventListener('click', () => {
-      calendarMonth.setMonth(calendarMonth.getMonth() + 1);
-      renderMiniCalendar(
-        allData.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || '')),
-        allData.filter(d => d.type === 'expense'),
-        allData.filter(d => d.type === 'income')
-      );
-    });
+  const eventDates = new Set(allEvents.map(e => e._date));
+  const firstDay = new Date(y,m,1).getDay();
+  const daysInMonth = new Date(y,m+1,0).getDate();
+  const today = new Date();
 
-    (async () => {
-      const r = await window.dataSdk.init(handler);
-      if (r.isError) showToast('error-toast', 'Failed to connect to data. Please refresh.');
-      lucide.createIcons();
-    })();
-  </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9fc3ecb282af0d71',t:'MTc3ODg2Njc5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
-</body></html>
+  let html = '<div class="cal-grid">';
+  ['S','M','T','W','T','F','S'].forEach(d => { html += `<div class="cal-day-label">${d}</div>`; });
+  for (let i=0; i<firstDay; i++) html += '<div class="cal-day empty"></div>';
+  for (let d=1; d<=daysInMonth; d++) {
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday = d===today.getDate()&&m===today.getMonth()&&y===today.getFullYear();
+    const hasEv = eventDates.has(ds);
+    html += `<div class="cal-day${isToday?' today':hasEv?' has-event':''}">${d}</div>`;
+  }
+  html += '</div>';
+  document.getElementById('cal-grid').innerHTML = html;
+
+  // Events this month
+  const monthStr = `${y}-${String(m+1).padStart(2,'0')}`;
+  const monthEvents = allEvents.filter(e => e._date && e._date.startsWith(monthStr))
+    .sort((a,b) => a._date.localeCompare(b._date));
+
+  const evContainer = document.getElementById('cal-events');
+  if (!monthEvents.length) {
+    evContainer.innerHTML = '<div class="log-empty">No events this month</div>';
+    return;
+  }
+  evContainer.innerHTML = '<div class="log-section-title">This Month</div>' +
+    monthEvents.map(e => {
+      const emoji = e._type==='bill'?'📅':e._type==='expense'?'💳':'💰';
+      const name = e.name || e.source || e.category || 'Event';
+      const amt = e.amount ? ` — $${parseFloat(e.amount).toFixed(2)}` : '';
+      return `<div class="log-entry"><div class="log-entry-main"><div class="log-entry-name">${emoji} ${name}${amt}</div><div class="log-entry-sub">${fmtDateShort(e._date)}</div></div></div>`;
+    }).join('');
+}
+
+// ── LOAD ALL DATA ──────────────────────────────────────────────────────────
+function loadAllLogs() {
+  renderLog('meals-log', S.getArr('meals'), mealRowFn('meals'));
+  renderLog('blood-log', S.getArr('blood'), bsRowFn);
+  renderLog('flowers-log', S.getArr('flowers'), flowerRowFn);
+  renderLog('nightly-log', S.getArr('nightly'), nightlyRowFn);
+  renderLog('books-log', S.getArr('books'), bookRowFn);
+  renderLog('music-log', S.getArr('music'), musicRowFn);
+  ['blair','tessa','zoey','maximus'].forEach(pet => renderLog(pet+'-log', S.getArr('pet_'+pet), petRowFn(pet)));
+  renderLog('expenses-log', S.getArr('expenses'), expenseRowFn);
+  renderLog('income-log', S.getArr('income'), incomeRowFn);
+  renderLog('bills-log', S.getArr('bills'), billRowFn);
+  renderLog('goals-log', S.getArr('goals'), goalRowFn);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+loadTextEdits();
+loadPhotos();
+loadProfile();
+loadAllLogs();
+
+// Set today's date in date fields
+document.querySelectorAll('input[type="date"]').forEach(input => {
+  if (!input.value) input.valueAsDate = new Date();
+});
+</script>
+</body>
+</html>
