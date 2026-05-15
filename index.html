@@ -1,0 +1,952 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glitter Habits</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&amp;family=Playfair+Display:wght@700&amp;family=Raleway:wght@700;800;900&amp;display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'DM Sans', sans-serif; }
+    .heading-font { font-family: 'Playfair Display', serif; }
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .sparkle-dot {
+      position: absolute; width: 6px; height: 6px;
+      background: #f97316; border-radius: 50%;
+      animation: sparkle 1.5s infinite; pointer-events: none;
+    }
+    .sparkle-dot:nth-child(2n) { background: #fb923c; animation-delay: 0.5s; }
+    .sparkle-dot:nth-child(3n) { background: #fed7aa; animation-delay: 1s; width: 4px; height: 4px; }
+    .tab-active {
+      background: linear-gradient(135deg, #f97316, #14b8a6);
+      color: #fff; box-shadow: 0 0 20px rgba(249,115,22,0.4);
+    }
+    .tab-inactive { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+    .tab-inactive:hover { background: rgba(255,255,255,0.25); }
+    .card-glass {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .input-style {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.25);
+      color: #fff; border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem; width: 100%;
+      outline: none; transition: border-color 0.2s;
+    }
+    .input-style:focus { border-color: #f97316; }
+    .input-style::placeholder { color: rgba(255,255,255,0.4); }
+    select.input-style option { background: #1e1b4b; color: #fff; }
+    .btn-glow {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: #fff; border: none; padding: 0.5rem 1.25rem;
+      border-radius: 0.5rem; font-weight: 600; cursor: pointer;
+      transition: box-shadow 0.2s, transform 0.1s;
+    }
+    .btn-glow:hover { box-shadow: 0 0 24px rgba(249,115,22,0.5); transform: translateY(-1px); }
+    .btn-glow:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .record-item {
+      background: linear-gradient(135deg, rgba(20,184,166,0.12), rgba(249,115,22,0.08));
+      border: 1px solid rgba(249,115,22,0.4);
+      border-left: 4px solid #f97316;
+      padding: 1rem; border-radius: 0.75rem;
+      margin-bottom: 0.75rem; transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(249,115,22,0.15);
+    }
+    .record-item:hover {
+      background: linear-gradient(135deg, rgba(20,184,166,0.18), rgba(249,115,22,0.12));
+      border-color: rgba(249,115,22,0.6);
+      box-shadow: 0 6px 16px rgba(249,115,22,0.25);
+      transform: translateY(-2px);
+    }
+    .record-item.flag-high {
+      background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(239,68,68,0.15));
+      border-color: rgba(239,68,68,0.6); border-left-color: #dc2626;
+      box-shadow: 0 4px 20px rgba(220,38,38,0.3);
+    }
+    .record-item.flag-low {
+      background: linear-gradient(135deg, rgba(6,182,212,0.2), rgba(34,197,226,0.15));
+      border-color: rgba(34,197,226,0.6); border-left-color: #0891b2;
+      box-shadow: 0 4px 20px rgba(6,182,212,0.3);
+    }
+    .quote-box {
+      font-style: italic;
+      background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(20,184,166,0.15));
+      border: 1px solid rgba(249,115,22,0.3);
+      border-radius: 0.75rem; padding: 1rem;
+    }
+    .budget-subtab { background: rgba(255,255,255,0.15); color: #e2e8f0; transition: all 0.2s; }
+    .budget-subtab:hover { background: rgba(255,255,255,0.25); }
+    .budget-subtab-active {
+      background: linear-gradient(135deg, #f97316, #14b8a6);
+      color: #fff; box-shadow: 0 0 16px rgba(249,115,22,0.35);
+    }
+    .calendar-day {
+      aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+      border-radius: 0.375rem; background: rgba(255,255,255,0.08);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .calendar-day:hover { background: rgba(249,115,22,0.3); }
+    .calendar-day.has-event { background: rgba(249,115,22,0.4); font-weight: 600; border: 1px solid rgba(249,115,22,0.8); }
+    .calendar-day.is-today { background: rgba(20,184,166,0.4); border: 1px solid rgba(20,184,166,0.8); font-weight: bold; }
+    .pet-tab { background: rgba(255,255,255,0.15); color: #e2e8f0; transition: all 0.2s; }
+    .pet-tab:hover { background: rgba(255,255,255,0.25); }
+    .pet-tab-active { background: linear-gradient(135deg, #14b8a6, #0d9488); color: #fff; box-shadow: 0 0 16px rgba(20,184,166,0.35); }
+    .pet-tab-inactive { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+    .toast-msg {
+      position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%);
+      padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-weight: 600;
+      font-size: 0.875rem; z-index: 60; transition: opacity 0.3s;
+    }
+  </style>
+  <script src="/_sdk/resizing_sdk.js" type="text/javascript"></script>
+ </head>
+ <body data-template-id="__page-root" class="w-full min-h-screen relative overflow-x-hidden" style="background: linear-gradient(135deg, rgb(15, 23, 42), rgb(19, 78, 74), rgb(30, 27, 75));">
+  <div class="sparkle-dot" style="top:5%;left:10%"></div>
+  <div class="sparkle-dot" style="top:12%;left:80%"></div>
+  <div class="sparkle-dot" style="top:30%;left:5%"></div>
+  <div class="sparkle-dot" style="top:45%;left:92%"></div>
+  <div class="sparkle-dot" style="top:60%;left:15%"></div>
+  <div class="sparkle-dot" style="top:75%;left:85%"></div>
+  <div class="sparkle-dot" style="top:88%;left:50%"></div>
+  <div class="sparkle-dot" style="top:20%;left:45%"></div>
+  <div class="sparkle-dot" style="top:55%;left:60%"></div>
+  <header class="w-full text-center pt-4 pb-2 sm:pt-6 relative z-10">
+   <h1 data-template-id="app-title" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 900; font-style: normal; font-size: 32px;">✨ THE LIFE OF A HABIT TRACKER ✨</h1>
+   <p data-template-id="app-subtitle" class="canva-text mt-1 opacity-80" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">You remind me of a younger me; I saw potential.</p>
+  </header>
+  <nav class="w-full max-w-4xl mx-auto px-2 mt-3 flex gap-1 relative z-10 flex-wrap justify-center sm:px-4 sm:gap-2 sm:mt-4" role="tablist"><button role="tab" class="tab-btn tab-active flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="profile" aria-selected="true"><i data-lucide="user" class="w-4 h-4"></i><span data-template-id="tab-profile-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Profile</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="meals" aria-selected="false"><i data-lucide="utensils" class="w-4 h-4"></i><span data-template-id="tab-meals-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Meals</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="blood" aria-selected="false"><i data-lucide="heart-pulse" class="w-4 h-4"></i><span data-template-id="tab-blood-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Blood</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="flowers" aria-selected="false"><i data-lucide="flower-2" class="w-4 h-4"></i><span data-template-id="tab-flowers-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Flowers</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="nightly" aria-selected="false"><i data-lucide="moon" class="w-4 h-4"></i><span data-template-id="tab-nightly-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Nightly</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="books" aria-selected="false"><i data-lucide="book" class="w-4 h-4"></i><span data-template-id="tab-books-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Books</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="music" aria-selected="false"><i data-lucide="music" class="w-4 h-4"></i><span data-template-id="tab-music-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Music</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="pets" aria-selected="false"><i data-lucide="dog" class="w-4 h-4"></i><span data-template-id="tab-pets-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Pets</span></button> <button role="tab" class="tab-btn tab-inactive flex-1 min-w-[2.5rem] sm:min-w-[5.5rem] py-2 px-1 sm:px-2 rounded-lg text-[10px] sm:text-sm font-semibold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1" data-tab="budget" aria-selected="false"><i data-lucide="wallet" class="w-4 h-4"></i><span data-template-id="tab-budget-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Budget</span></button>
+  </nav><!-- Budget subtabs -->
+  <nav id="budget-subtabs" class="hidden w-full max-w-4xl mx-auto px-4 mt-3 flex gap-2 relative z-10 flex-wrap justify-center" role="tablist"><button role="tab" class="budget-subtab budget-subtab-active py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="expenses" aria-selected="true"><i data-lucide="credit-card" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-expenses-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Expenses</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="income" aria-selected="false"><i data-lucide="trending-up" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-income-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Income</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="bills" aria-selected="false"><i data-lucide="calendar" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-bills-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Bills</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="goals" aria-selected="false"><i data-lucide="target" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-goals-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Goals</span></button> <button role="tab" class="budget-subtab py-2 px-3 rounded-lg text-xs font-semibold transition-all" data-subtab="calendar" aria-selected="false"><i data-lucide="calendar" class="inline w-3 h-3 mr-1"></i><span data-template-id="subtab-calendar-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Calendar</span></button>
+  </nav>
+  <main class="w-full max-w-2xl mx-auto px-3 py-4 relative z-10 sm:px-4 sm:py-6"><!-- Profile Tab -->
+   <section id="tab-profile" role="tabpanel" class="tab-panel">
+    <div class="card-glass rounded-xl p-4 sm:p-6 space-y-4">
+     <div class="flex justify-center">
+      <img data-template-id="profile-photo" class="canva-image w-20 h-20 sm:w-28 sm:h-28 rounded-full object-cover border-4 border-orange-400 shadow-lg" loading="lazy" src="canva://MAHJsvVBYxU/1" alt="gettyimages-1484031614.jpg">
+     </div>
+     <form id="profile-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-name" class="canva-text text-sm block mb-1" for="pf-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Name</label><input id="pf-name" type="text" class="input-style" placeholder="Your name">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+       <div>
+        <label data-template-id="label-age" class="canva-text text-sm block mb-1" for="pf-age" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Age</label><input id="pf-age" type="number" class="input-style" placeholder="Age">
+       </div>
+       <div>
+        <label data-template-id="label-weight" class="canva-text text-sm block mb-1" for="pf-weight" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Weight</label><input id="pf-weight" type="text" class="input-style" placeholder="lbs">
+       </div>
+       <div>
+        <label data-template-id="label-height" class="canva-text text-sm block mb-1" for="pf-height" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Height</label><input id="pf-height" type="text" class="input-style" placeholder="ft/in">
+       </div>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="save-profile-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Save Profile</button>
+     </form>
+    </div>
+   </section><!-- Meals Tab -->
+   <section id="tab-meals" role="tabpanel" class="tab-panel hidden">
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-romantic" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"It's actually romantic... how you logged your meals today."</p>
+    </div>
+    <div class="card-glass rounded-xl p-4 sm:p-5 space-y-3">
+     <h2 data-template-id="meals-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🍽️ Meal Tracker</h2>
+     <form id="meal-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-meal-name" class="canva-text text-sm block mb-1" for="meal-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Meal Name</label><input id="meal-name" type="text" class="input-style" placeholder="e.g. Avocado Toast" required="">
+      </div>
+      <div>
+       <label data-template-id="label-meal-notes" class="canva-text text-sm block mb-1" for="meal-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="meal-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-meal-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Meal</button>
+     </form>
+     <div id="meal-list" class="mt-3 space-y-2"></div>
+     <p id="meal-empty" data-template-id="meal-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No meals logged yet — treat yourself! 🍕</p>
+    </div>
+   </section><!-- Blood Sugar Tab -->
+   <section id="tab-blood" role="tabpanel" class="tab-panel hidden">
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-blood" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"I had a bad habit;
+Of missing blood sugars readings past."</p>
+    </div>
+    <div class="card-glass rounded-xl p-5 space-y-3">
+     <h2 data-template-id="blood-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">💉 Blood Sugar Tracker</h2>
+     <form id="blood-form" class="space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 items-stretch">
+       <div class="col-span-1 sm:col-span-2 flex flex-col">
+        <label data-template-id="label-bs-value" class="canva-text text-sm block mb-2" for="bs-value" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Reading (mg/dL)</label><input id="bs-value" type="number" class="input-style text-center flex-1" placeholder="0" required="" style="font-size: 4rem; font-weight: 800; line-height: 1;">
+       </div>
+       <div class="flex flex-col">
+        <label data-template-id="label-bs-notes" class="canva-text text-sm block mb-1" for="bs-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="bs-notes" class="input-style flex-1 text-xs" placeholder="e.g. Before lunch"></textarea>
+       </div>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-bs-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Reading</button>
+     </form>
+     <div id="blood-list" class="mt-3 space-y-2"></div>
+     <p id="blood-empty" data-template-id="blood-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No readings yet — stay on top of it! 💪</p>
+    </div>
+   </section><!-- Flowers Tab -->
+   <section id="tab-flowers" role="tabpanel" class="tab-panel hidden">
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-showgirl" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"The show must go on." 🌸</p>
+    </div>
+    <div class="card-glass rounded-xl p-5 space-y-3">
+     <h2 data-template-id="flowers-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🌺 Flower Tracker</h2>
+     <div class="flex justify-center mb-2">
+      <img data-template-id="flower-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="canva://MAE896yDbKg/1" alt="Bright orange glitter sparkle. Seamless square texture.">
+     </div>
+     <form id="flower-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-flower-name" class="canva-text text-sm block mb-1" for="flower-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Flower Name</label><input id="flower-name" type="text" class="input-style" placeholder="e.g. Sunflower" required="">
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+       <div>
+        <label data-template-id="label-flower-date" class="canva-text text-sm block mb-1" for="flower-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="flower-date" type="date" class="input-style" required="">
+       </div>
+       <div>
+        <label data-template-id="label-flower-time" class="canva-text text-sm block mb-1" for="flower-time" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Time</label><input id="flower-time" type="time" class="input-style">
+       </div>
+      </div>
+      <div>
+       <label data-template-id="label-flower-location" class="canva-text text-sm block mb-1" for="flower-location" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Location</label><input id="flower-location" type="text" class="input-style" placeholder="e.g. Backyard">
+      </div>
+      <div>
+       <label data-template-id="label-flower-allotment" class="canva-text text-sm block mb-1" for="flower-allotment" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Allotment Used</label><input id="flower-allotment" type="text" class="input-style" placeholder="e.g. Bed 3">
+      </div>
+      <div>
+       <label data-template-id="label-flower-notes" class="canva-text text-sm block mb-1" for="flower-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="flower-notes" class="input-style" rows="2" placeholder="How's it growing?"></textarea>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-flower-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(20, 184, 166)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Flower</button>
+     </form>
+     <div id="flower-list" class="mt-3 space-y-2"></div>
+     <p id="flower-empty" data-template-id="flower-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No flowers logged yet — time to garden! 🌻</p>
+    </div>
+   </section><!-- Nightly Dose Tab -->
+   <section id="tab-nightly" role="tabpanel" class="tab-panel hidden">
+    <div class="card-glass rounded-xl p-5 space-y-3">
+     <h2 data-template-id="nightly-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">🌙 Nightly Dose</h2>
+     <form id="nightly-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-nightly-amount" class="canva-text text-sm block mb-1" for="nightly-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount</label><input id="nightly-amount" type="text" class="input-style" placeholder="e.g. 2 capsules" required="">
+      </div>
+      <div>
+       <label data-template-id="label-nightly-date" class="canva-text text-sm block mb-1" for="nightly-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="nightly-date" type="date" class="input-style" required="">
+      </div>
+      <div>
+       <label data-template-id="label-nightly-feeling" class="canva-text text-sm block mb-1" for="nightly-feeling" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">How are you feeling?</label>
+       <div class="flex items-center gap-3">
+        <input id="nightly-feeling" type="range" min="1" max="10" value="5" class="flex-1" style="height:6px;border-radius:3px;background:rgba(255,255,255,0.2);outline:none;"><span id="feeling-display" class="text-sm font-semibold text-orange-300 w-8 text-center">5</span>
+       </div>
+       <div class="text-xs opacity-60 mt-1 flex justify-between px-1">
+        <span data-template-id="feeling-worst" class="canva-text" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">Worst</span><span data-template-id="feeling-best" class="canva-text" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">Best</span>
+       </div>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-nightly-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Dose</button>
+     </form>
+     <div id="nightly-list" class="mt-3 space-y-2"></div>
+     <p id="nightly-empty" data-template-id="nightly-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No doses logged yet — time to wind down! 😴</p>
+    </div>
+   </section><!-- Books Tab -->
+   <section id="tab-books" role="tabpanel" class="tab-panel hidden">
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-books" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"A reader lives a thousand lives before he dies. The man who never reads lives only one."</p>
+    </div>
+    <div class="card-glass rounded-xl p-5 space-y-3">
+     <h2 data-template-id="books-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📚 Book Tracker</h2>
+     <div class="flex justify-center mb-2">
+      <img data-template-id="books-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/1130980/pexels-photo-1130980.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="A stack of vintage hardcover books on a wooden table in a cozy library setting.">
+     </div>
+     <form id="books-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-book-title" class="canva-text text-sm block mb-1" for="book-title" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Book Title</label><input id="book-title" type="text" class="input-style" placeholder="e.g. The Midnight Library" required="">
+      </div>
+      <div>
+       <label data-template-id="label-book-author" class="canva-text text-sm block mb-1" for="book-author" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Author</label><input id="book-author" type="text" class="input-style" placeholder="e.g. Matt Haig">
+      </div>
+      <div>
+       <label data-template-id="label-book-status" class="canva-text text-sm block mb-1" for="book-status" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Status</label><select id="book-status" class="input-style"><option value="want-to-read">Want to Read</option><option value="reading">Currently Reading</option><option value="completed">Completed</option></select>
+      </div>
+      <div>
+       <label data-template-id="label-book-notes" class="canva-text text-sm block mb-1" for="book-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Your Thoughts</label><textarea id="book-notes" class="input-style" rows="2" placeholder="Your thoughts..."></textarea>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-book-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Book</button>
+     </form>
+     <div id="books-list" class="mt-3 space-y-2"></div>
+     <p id="books-empty" data-template-id="books-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No books logged yet — start your reading list! 📖</p>
+    </div>
+   </section><!-- Music Tab -->
+   <section id="tab-music" role="tabpanel" class="tab-panel hidden">
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-music" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Music is the soundtrack to my life." 🎶</p>
+    </div>
+    <div class="card-glass rounded-xl p-5 space-y-3">
+     <h2 data-template-id="music-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">🎵 Album Collection</h2>
+     <form id="music-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-album-name" class="canva-text text-sm block mb-1" for="album-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Album Name</label><input id="album-name" type="text" class="input-style" placeholder="e.g. Midnights" required="">
+      </div>
+      <div>
+       <label data-template-id="label-artist-name" class="canva-text text-sm block mb-1" for="artist-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Artist</label><input id="artist-name" type="text" class="input-style" placeholder="e.g. Taylor Swift">
+      </div>
+      <div>
+       <label data-template-id="label-cover-emoji" class="canva-text text-sm block mb-1" for="cover-emoji" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Cover Emoji</label><input id="cover-emoji" type="text" class="input-style" placeholder="🎵" maxlength="2" required="">
+      </div>
+      <div>
+       <label data-template-id="label-physical-media" class="canva-text text-sm block mb-1" for="physical-media" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Physical Media</label><select id="physical-media" class="input-style"><option value="">Select media type</option><option value="vinyl">Vinyl Record</option><option value="cd">CD</option><option value="cassette">Cassette Tape</option><option value="digital">Digital Only</option></select>
+      </div>
+      <div class="flex items-center gap-2">
+       <input id="album-signed" type="checkbox" class="w-4 h-4" style="accent-color: #f97316;"><label data-template-id="label-signed" class="canva-text text-sm" for="album-signed" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Signed?</label>
+      </div>
+      <div>
+       <label data-template-id="label-music-notes" class="canva-text text-sm block mb-1" for="music-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Your Thoughts</label><textarea id="music-notes" class="input-style" rows="2" placeholder="Your thoughts..."></textarea>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-music-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Album</button>
+     </form>
+     <div id="music-list" class="mt-3 space-y-2"></div>
+     <p id="music-empty" data-template-id="music-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No albums logged yet — start building your collection! 🎧</p>
+    </div>
+   </section><!-- Pets Tab -->
+   <section id="tab-pets" role="tabpanel" class="tab-panel hidden">
+    <nav class="w-full flex gap-1.5 flex-wrap justify-center mb-4" role="tablist"><button role="tab" class="pet-tab pet-tab-active py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="blair" aria-selected="true"><span data-template-id="pet-blair-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Blair</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="tessa" aria-selected="false"><span data-template-id="pet-tessa-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Tessa</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="zoey" aria-selected="false"><span data-template-id="pet-zoey-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Zoey</span></button> <button role="tab" class="pet-tab pet-tab-inactive py-2 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all" data-pet="maximus" aria-selected="false"><span data-template-id="pet-maximus-label" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 400; font-style: normal; font-size: 16px;">Maximus</span></button>
+    </nav>
+    <div class="quote-box mb-4">
+     <p data-template-id="quote-pets" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Pets are not our whole life, but they make our lives whole."</p>
+    </div>
+    <div id="pet-blair" class="pet-panel card-glass rounded-xl p-5 space-y-3">
+     <div class="flex justify-center mb-2">
+      <img data-template-id="pet-blair-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/19142219/pexels-photo-19142219.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Charming fluffy puppy sitting on a tiled floor with warm lighting, perfect for pet-themed content.">
+     </div>
+     <form id="blair-form" class="space-y-3">
+      <div>
+       <label data-template-id="label-reminder-type" class="canva-text text-sm block mb-1" for="blair-type" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Reminder Type</label><select id="blair-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
+      </div>
+      <div>
+       <label data-template-id="label-reminder-date" class="canva-text text-sm block mb-1" for="blair-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="blair-date" type="date" class="input-style" required="">
+      </div>
+      <div>
+       <label data-template-id="label-reminder-notes" class="canva-text text-sm block mb-1" for="blair-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Details</label><textarea id="blair-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
+      </div><button type="submit" class="btn-glow w-full" data-template-id="log-reminder-btn" style="background: linear-gradient(135deg, rgb(20, 184, 166), rgb(13, 148, 136)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Reminder</button>
+     </form>
+     <div id="blair-list" class="mt-3 space-y-2"></div>
+     <p id="blair-empty" data-template-id="blair-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Blair yet 🐾</p>
+    </div>
+    <div id="pet-tessa" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
+     <div class="flex justify-center mb-2">
+      <img data-template-id="pet-tessa-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/1571076/pexels-photo-1571076.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="A close-up portrait of a cute calico cat with vivid eyes and soft fur, perfect for animal lovers.">
+     </div>
+     <form id="tessa-form" class="space-y-3">
+      <div>
+       <label class="canva-text text-sm block mb-1" for="tessa-type">Reminder Type</label><select id="tessa-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="tessa-date">Date</label><input id="tessa-date" type="date" class="input-style" required="">
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="tessa-notes">Details</label><textarea id="tessa-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
+      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
+     </form>
+     <div id="tessa-list" class="mt-3 space-y-2"></div>
+     <p id="tessa-empty" data-template-id="tessa-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Tessa yet 🐾</p>
+    </div>
+    <div id="pet-zoey" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
+     <div class="flex justify-center mb-2">
+      <img data-template-id="pet-zoey-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/6557017/pexels-photo-6557017.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Close-up of a cute puppy looking up with big eyes indoors. Perfect for pet lovers.">
+     </div>
+     <form id="zoey-form" class="space-y-3">
+      <div>
+       <label class="canva-text text-sm block mb-1" for="zoey-type">Reminder Type</label><select id="zoey-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="zoey-date">Date</label><input id="zoey-date" type="date" class="input-style" required="">
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="zoey-notes">Details</label><textarea id="zoey-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
+      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
+     </form>
+     <div id="zoey-list" class="mt-3 space-y-2"></div>
+     <p id="zoey-empty" data-template-id="zoey-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Zoey yet 🐾</p>
+    </div>
+    <div id="pet-maximus" class="pet-panel card-glass rounded-xl p-5 space-y-3 hidden">
+     <div class="flex justify-center mb-2">
+      <img data-template-id="pet-maximus-photo" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/4695939/pexels-photo-4695939.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Elegant portrait of a black Great Dane against a dark backdrop. Stunning and regal representation.">
+     </div>
+     <form id="maximus-form" class="space-y-3">
+      <div>
+       <label class="canva-text text-sm block mb-1" for="maximus-type">Reminder Type</label><select id="maximus-type" class="input-style"><option value="feeding">Feeding</option><option value="vet">Vet Appointment</option><option value="grooming">Grooming</option><option value="playtime">Playtime</option><option value="other">Other</option></select>
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="maximus-date">Date</label><input id="maximus-date" type="date" class="input-style" required="">
+      </div>
+      <div>
+       <label class="canva-text text-sm block mb-1" for="maximus-notes">Details</label><textarea id="maximus-notes" class="input-style" rows="2" placeholder="Details..."></textarea>
+      </div><button type="submit" class="btn-glow w-full">Add Reminder</button>
+     </form>
+     <div id="maximus-list" class="mt-3 space-y-2"></div>
+     <p id="maximus-empty" data-template-id="maximus-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No reminders for Maximus yet 🐾</p>
+    </div>
+   </section><!-- Budget Tab -->
+   <section id="tab-budget" role="tabpanel" class="tab-panel hidden">
+    <div id="budget-subtab-expenses" class="budget-subtab-panel">
+     <div class="quote-box mb-4">
+      <p data-template-id="quote-budget" class="canva-text text-center" style="color: rgb(251, 191, 36); font-weight: 700; font-style: normal; font-size: 16px;">"Money is a tool. Used properly, it makes you free." 💸</p>
+     </div>
+     <div class="card-glass rounded-xl p-5 space-y-3">
+      <h2 data-template-id="budget-expenses-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">💳 Expenses</h2>
+      <div class="flex justify-center mb-2">
+       <img data-template-id="budget-image" class="canva-image w-full h-24 sm:h-40 object-cover rounded-lg" loading="lazy" src="https://images.pexels.com/photos/3943716/pexels-photo-3943716.jpeg?auto=compress&amp;cs=tinysrgb&amp;w=800" alt="Person placing coin into a black piggy bank with scattered coins, symbolizing savings and finance.">
+      </div>
+      <form id="expense-form" class="space-y-3">
+       <div>
+        <label data-template-id="label-expense-category" class="canva-text text-sm block mb-1" for="expense-category" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Category</label><input id="expense-category" type="text" class="input-style" placeholder="e.g. Groceries" required="">
+       </div>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+         <label data-template-id="label-expense-amount" class="canva-text text-sm block mb-1" for="expense-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="expense-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
+        </div>
+        <div>
+         <label data-template-id="label-expense-date" class="canva-text text-sm block mb-1" for="expense-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="expense-date" type="date" class="input-style" required="">
+        </div>
+       </div>
+       <div>
+        <label data-template-id="label-expense-notes" class="canva-text text-sm block mb-1" for="expense-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="expense-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
+       </div><button type="submit" class="btn-glow w-full" data-template-id="log-expense-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Expense</button>
+      </form>
+      <div id="expense-list" class="mt-3 space-y-2"></div>
+      <p id="expense-empty" data-template-id="expense-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No expenses logged yet — start tracking! 💳</p>
+     </div>
+    </div>
+    <div id="budget-subtab-income" class="budget-subtab-panel hidden">
+     <div class="card-glass rounded-xl p-5 space-y-3">
+      <h2 data-template-id="budget-income-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">💰 Income Tracker</h2>
+      <form id="income-form" class="space-y-3">
+       <div>
+        <label data-template-id="label-income-source" class="canva-text text-sm block mb-1" for="income-source" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Income Source</label><input id="income-source" type="text" class="input-style" placeholder="e.g. Salary" required="">
+       </div>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+         <label data-template-id="label-income-amount" class="canva-text text-sm block mb-1" for="income-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="income-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
+        </div>
+        <div>
+         <label data-template-id="label-income-date" class="canva-text text-sm block mb-1" for="income-date" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Date</label><input id="income-date" type="date" class="input-style" required="">
+        </div>
+       </div>
+       <div>
+        <label data-template-id="label-income-frequency" class="canva-text text-sm block mb-1" for="income-frequency" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Frequency</label><select id="income-frequency" class="input-style"><option value="once">One-time</option><option value="weekly">Weekly</option><option value="biweekly">Bi-weekly</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select>
+       </div>
+       <div>
+        <label data-template-id="label-income-notes" class="canva-text text-sm block mb-1" for="income-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="income-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
+       </div><button type="submit" class="btn-glow w-full" data-template-id="log-income-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Log Income</button>
+      </form>
+      <div id="income-list" class="mt-3 space-y-2"></div>
+      <p id="income-empty" data-template-id="income-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No income recorded yet — add a source! 💰</p>
+     </div>
+    </div>
+    <div id="budget-subtab-bills" class="budget-subtab-panel hidden">
+     <div class="card-glass rounded-xl p-5 space-y-3">
+      <h2 data-template-id="budget-bills-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📅 Bills &amp; Due Dates</h2>
+      <form id="bill-form" class="space-y-3">
+       <div>
+        <label data-template-id="label-bill-name" class="canva-text text-sm block mb-1" for="bill-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Bill Name</label><input id="bill-name" type="text" class="input-style" placeholder="e.g. Electric Bill" required="">
+       </div>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+         <label data-template-id="label-bill-amount" class="canva-text text-sm block mb-1" for="bill-amount" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Amount ($)</label><input id="bill-amount" type="number" class="input-style" placeholder="Amount" step="0.01" required="">
+        </div>
+        <div>
+         <label data-template-id="label-bill-due" class="canva-text text-sm block mb-1" for="bill-due" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Due Date</label><input id="bill-due" type="date" class="input-style" required="">
+        </div>
+       </div>
+       <div>
+        <label data-template-id="label-bill-frequency" class="canva-text text-sm block mb-1" for="bill-frequency" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Frequency</label><select id="bill-frequency" class="input-style"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="yearly">Yearly</option><option value="once">One-time</option></select>
+       </div>
+       <div class="flex items-center gap-2">
+        <input id="bill-paid" type="checkbox" class="w-4 h-4" style="accent-color: #14b8a6;"><label data-template-id="label-bill-paid" class="canva-text text-sm" for="bill-paid" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Paid?</label>
+       </div>
+       <div>
+        <label data-template-id="label-bill-notes" class="canva-text text-sm block mb-1" for="bill-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Notes</label><textarea id="bill-notes" class="input-style" rows="2" placeholder="Optional notes"></textarea>
+       </div><button type="submit" class="btn-glow w-full" data-template-id="log-bill-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Add Bill</button>
+      </form>
+      <div id="bill-list" class="mt-3 space-y-2"></div>
+      <p id="bill-empty" data-template-id="bill-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No bills added yet — stay organized! 📅</p>
+     </div>
+    </div>
+    <div id="budget-subtab-goals" class="budget-subtab-panel hidden">
+     <div class="card-glass rounded-xl p-5 space-y-3">
+      <h2 data-template-id="budget-goals-heading" class="canva-text heading-font" style="color: rgb(20, 184, 166); font-weight: 700; font-style: normal; font-size: 24px;">🎯 Savings Goals</h2>
+      <form id="goal-form" class="space-y-3">
+       <div>
+        <label data-template-id="label-goal-name" class="canva-text text-sm block mb-1" for="goal-name" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Goal Name</label><input id="goal-name" type="text" class="input-style" placeholder="e.g. Vacation Fund" required="">
+       </div>
+       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+         <label data-template-id="label-goal-target" class="canva-text text-sm block mb-1" for="goal-target" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Target Amount ($)</label><input id="goal-target" type="number" class="input-style" placeholder="Target" step="0.01" required="">
+        </div>
+        <div>
+         <label data-template-id="label-goal-saved" class="canva-text text-sm block mb-1" for="goal-saved" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Already Saved ($)</label><input id="goal-saved" type="number" class="input-style" placeholder="Saved so far" step="0.01" required="">
+        </div>
+       </div>
+       <div>
+        <label data-template-id="label-goal-deadline" class="canva-text text-sm block mb-1" for="goal-deadline" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Target Date</label><input id="goal-deadline" type="date" class="input-style" required="">
+       </div>
+       <div>
+        <label data-template-id="label-goal-notes" class="canva-text text-sm block mb-1" for="goal-notes" style="color: rgb(253, 186, 116); font-weight: 400; font-style: normal; font-size: 16px;">Motivation</label><textarea id="goal-notes" class="input-style" rows="2" placeholder="Your motivation..."></textarea>
+       </div><button type="submit" class="btn-glow w-full" data-template-id="log-goal-btn" style="background: linear-gradient(135deg, rgb(249, 115, 22), rgb(234, 88, 12)); color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Create Goal</button>
+      </form>
+      <div id="goal-list" class="mt-3 space-y-2"></div>
+      <p id="goal-empty" data-template-id="goal-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No goals yet — dream big! 🎯</p>
+     </div>
+    </div>
+    <div id="budget-subtab-calendar" class="budget-subtab-panel hidden">
+     <div class="card-glass rounded-xl p-5 space-y-3">
+      <h2 data-template-id="budget-calendar-heading" class="canva-text heading-font" style="color: rgb(249, 115, 22); font-weight: 700; font-style: normal; font-size: 24px;">📆 Mini Calendar</h2>
+      <div class="flex justify-between items-center gap-2 mb-4"><button id="cal-prev" type="button" class="btn-glow px-3 py-1 text-sm"><i data-lucide="chevron-left" class="w-4 h-4"></i></button> <span id="cal-month-display" class="text-sm font-semibold text-orange-300"></span> <button id="cal-next" type="button" class="btn-glow px-3 py-1 text-sm"><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
+      </div>
+      <div id="mini-calendar" class="bg-white/10 rounded-lg p-4"></div>
+      <div id="calendar-events" class="mt-4 space-y-2"></div>
+      <p id="calendar-empty" data-template-id="calendar-empty" class="canva-text text-center opacity-60 text-sm" style="color: rgb(94, 234, 212); font-weight: 400; font-style: normal; font-size: 16px;">No upcoming events — check back later! 📅</p>
+     </div>
+    </div>
+   </section>
+  </main>
+  <div id="limit-warning" class="hidden toast-msg bg-red-600 text-white">
+   Maximum 999 records reached! Please delete some entries.
+  </div>
+  <div id="error-toast" class="hidden toast-msg bg-red-600 text-white"></div>
+  <div id="success-toast" class="hidden toast-msg bg-teal-600 text-white"></div>
+  <div id="delete-confirm" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+   <div class="card-glass rounded-xl p-6 max-w-sm w-full text-center space-y-4">
+    <p data-template-id="delete-confirm-text" class="canva-text" style="color: rgb(255, 255, 255); font-weight: 600; font-style: normal; font-size: 16px;">Are you sure you want to delete this entry?</p>
+    <div class="flex gap-3 justify-center"><button id="confirm-yes" class="btn-glow px-6">Delete</button> <button id="confirm-no" class="input-style cursor-pointer text-center" style="width:auto;padding:0.5rem 1.5rem">Cancel</button>
+    </div>
+   </div>
+  </div>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/editing_sdk.js"></script>
+  <script>
+    let allData = [];
+    let profileRecord = null;
+    let pendingDelete = null;
+
+    document.querySelectorAll('.pet-tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.pet-tab').forEach(b => {
+          b.classList.remove('pet-tab-active');
+          b.classList.add('pet-tab-inactive');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.remove('pet-tab-inactive');
+        btn.classList.add('pet-tab-active');
+        btn.setAttribute('aria-selected', 'true');
+        document.querySelectorAll('.pet-panel').forEach(p => p.classList.add('hidden'));
+        const panel = document.getElementById('pet-' + btn.dataset.pet);
+        if (panel) panel.classList.remove('hidden');
+      });
+    });
+
+    document.querySelectorAll('.budget-subtab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.budget-subtab').forEach(b => {
+          b.classList.remove('budget-subtab-active');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.add('budget-subtab-active');
+        btn.setAttribute('aria-selected', 'true');
+        document.querySelectorAll('.budget-subtab-panel').forEach(p => p.classList.add('hidden'));
+        const panel = document.getElementById('budget-subtab-' + btn.dataset.subtab);
+        if (panel) panel.classList.remove('hidden');
+      });
+    });
+
+    function showToast(id, msg, duration) {
+      const el = document.getElementById(id);
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      setTimeout(() => el.classList.add('hidden'), duration || 2500);
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => {
+          b.classList.remove('tab-active');
+          b.classList.add('tab-inactive');
+          b.setAttribute('aria-selected', 'false');
+        });
+        btn.classList.remove('tab-inactive');
+        btn.classList.add('tab-active');
+        btn.setAttribute('aria-selected', 'true');
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+        const panel = document.getElementById('tab-' + btn.dataset.tab);
+        if (panel) panel.classList.remove('hidden');
+        document.getElementById('budget-subtabs').classList.toggle('hidden', btn.dataset.tab !== 'budget');
+      });
+    });
+
+    function formatDate(iso) {
+      if (!iso) return '';
+      try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); }
+      catch { return iso; }
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str || '';
+      return d.innerHTML;
+    }
+
+    function renderList(containerId, emptyId, records, labelFn, classFn) {
+      const c = document.getElementById(containerId);
+      const empty = document.getElementById(emptyId);
+      if (!c || !empty) return;
+      const existing = new Map([...c.children].map(el => [el.dataset.rid, el]));
+      const ids = new Set();
+      records.forEach(r => {
+        const rid = r.__backendId;
+        ids.add(rid);
+        const label = labelFn(r);
+        const dateStr = formatDate(r.date);
+        const className = classFn ? classFn(r) : '';
+        if (existing.has(rid)) {
+          const el = existing.get(rid);
+          const labelEl = el.querySelector('.rec-label');
+          const dateEl = el.querySelector('.rec-date');
+          if (labelEl) labelEl.textContent = label;
+          if (dateEl) dateEl.textContent = dateStr;
+          el.classList.remove('flag-high', 'flag-low');
+          if (className) el.classList.add(className);
+        } else {
+          const div = document.createElement('div');
+          div.className = `record-item flex justify-between items-start ${className}`;
+          div.dataset.rid = rid;
+          div.innerHTML = `<div class="flex-1 min-w-0"><span class="rec-label font-medium text-white break-words">${escapeHtml(label)}</span><br><span class="rec-date text-xs opacity-60 text-teal-200">${escapeHtml(dateStr)}</span></div><button class="del-btn text-orange-300 hover:text-red-400 ml-2 flex-shrink-0" type="button" aria-label="Delete"><i data-lucide="trash-2" class="w-4 h-4"></i></button>`;
+          div.querySelector('.del-btn').addEventListener('click', () => confirmDelete(r));
+          c.appendChild(div);
+        }
+      });
+      existing.forEach((el, id) => { if (!ids.has(id)) el.remove(); });
+      empty.style.display = records.length ? 'none' : 'block';
+      lucide.createIcons();
+    }
+
+    function confirmDelete(record) {
+      pendingDelete = record;
+      document.getElementById('delete-confirm').classList.remove('hidden');
+    }
+
+    document.getElementById('confirm-no').addEventListener('click', () => {
+      pendingDelete = null;
+      document.getElementById('delete-confirm').classList.add('hidden');
+    });
+
+    document.getElementById('confirm-yes').addEventListener('click', async () => {
+      if (!pendingDelete) return;
+      const btn = document.getElementById('confirm-yes');
+      btn.disabled = true; btn.textContent = '...';
+      const res = await window.dataSdk.delete(pendingDelete);
+      btn.disabled = false; btn.textContent = 'Delete';
+      document.getElementById('delete-confirm').classList.add('hidden');
+      if (res.isError) showToast('error-toast', 'Failed to delete. Please try again.');
+      pendingDelete = null;
+    });
+
+    const handler = {
+      onDataChanged(data) {
+        allData = data;
+        profileRecord = data.find(d => d.type === 'profile') || null;
+        if (profileRecord) {
+          document.getElementById('pf-name').value = profileRecord.name || '';
+          const parts = profileRecord.value ? profileRecord.value.split('|') : [];
+          document.getElementById('pf-age').value = parts[0] || '';
+          document.getElementById('pf-weight').value = parts[1] || '';
+          document.getElementById('pf-height').value = parts[2] || '';
+        }
+        const byDate = (a, b) => (b.date || '').localeCompare(a.date || '');
+        const meals = data.filter(d => d.type === 'meal').sort(byDate);
+        const bloods = data.filter(d => d.type === 'blood_sugar').sort(byDate);
+        const flowers = data.filter(d => d.type === 'flower').sort(byDate);
+        const nightly = data.filter(d => d.type === 'nightly_dose').sort(byDate);
+        const books = data.filter(d => d.type === 'book').sort(byDate);
+        const pets_blair = data.filter(d => d.type === 'pet_reminder' && d.category === 'blair').sort(byDate);
+        const pets_tessa = data.filter(d => d.type === 'pet_reminder' && d.category === 'tessa').sort(byDate);
+        const pets_zoey = data.filter(d => d.type === 'pet_reminder' && d.category === 'zoey').sort(byDate);
+        const pets_maximus = data.filter(d => d.type === 'pet_reminder' && d.category === 'maximus').sort(byDate);
+        const expenses = data.filter(d => d.type === 'expense').sort(byDate);
+        const income = data.filter(d => d.type === 'income').sort(byDate);
+        const bills = data.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || ''));
+        const goals = data.filter(d => d.type === 'savings_goal').sort(byDate);
+        const music = data.filter(d => d.type === 'album').sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+        renderList('meal-list', 'meal-empty', meals, r => r.notes ? `${r.name} — ${r.notes}` : r.name || 'Meal');
+        renderList('blood-list', 'blood-empty', bloods, r => {
+          const v = parseFloat(r.value);
+          const l = `${r.value || '?'} mg/dL${r.notes ? ' — ' + r.notes : ''}`;
+          if (!isNaN(v)) {
+            if (v > 180) return `${l} 🔴 OH, OH, OOOO MY LORD!`;
+            if (v < 79) return `${l} 💙 Never seen a blood sugar like you before!`;
+          }
+          return l;
+        }, r => {
+          const v = parseFloat(r.value);
+          if (!isNaN(v)) { if (v > 180) return 'flag-high'; if (v < 79) return 'flag-low'; }
+          return '';
+        });
+        renderList('flower-list', 'flower-empty', flowers, r => {
+          let l = r.name || 'Flower';
+          if (r.value) { const p = r.value.split('|'); if (p[0]) l += ` • ${p[0]}`; if (p[1]) l += ` (${p[1]})`; }
+          return r.notes ? `${l} — ${r.notes}` : l;
+        });
+        renderList('nightly-list', 'nightly-empty', nightly, r => `${r.name || 'Dose'} • Feeling: ${r.value || '?'}/10`);
+        renderList('books-list', 'books-empty', books, r => {
+          const author = r.value ? ` by ${r.value}` : '';
+          return r.notes ? `${r.name || 'Book'}${author} — ${r.notes}` : (r.name || 'Book') + author;
+        });
+        renderList('music-list', 'music-empty', music, r => {
+          const p = r.value ? r.value.split('|') : ['', '', ''];
+          return `${r.name || 'Album'}${p[0] ? ' • ' + p[0] : ''}${p[1] ? ' [' + p[1] + ']' : ''}${p[2] === 'true' ? ' ✓' : ''}${r.notes ? ' — ' + r.notes : ''}`;
+        });
+        renderList('blair-list', 'blair-empty', pets_blair, r => {
+          const p = r.value ? r.value.split('|') : ['', ''];
+          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
+        });
+        renderList('tessa-list', 'tessa-empty', pets_tessa, r => {
+          const p = r.value ? r.value.split('|') : ['', ''];
+          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
+        });
+        renderList('zoey-list', 'zoey-empty', pets_zoey, r => {
+          const p = r.value ? r.value.split('|') : ['', ''];
+          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
+        });
+        renderList('maximus-list', 'maximus-empty', pets_maximus, r => {
+          const p = r.value ? r.value.split('|') : ['', ''];
+          return `${p[0] || 'Reminder'}${p[1] ? ' — ' + p[1] : ''}`;
+        });
+        renderList('expense-list', 'expense-empty', expenses, r => {
+          const a = parseFloat(r.value); const s = isNaN(a) ? r.value : `$${a.toFixed(2)}`;
+          return `${r.name || 'Expense'} • ${s}${r.notes ? ' — ' + r.notes : ''}`;
+        });
+        renderList('income-list', 'income-empty', income, r => {
+          const p = r.value ? r.value.split('|') : ['', ''];
+          const a = parseFloat(p[0]); const s = isNaN(a) ? p[0] : `$${a.toFixed(2)}`;
+          return `${r.name || 'Income'} • ${s}${p[1] ? ' (' + p[1] + ')' : ''}${r.notes ? ' — ' + r.notes : ''}`;
+        });
+        renderList('bill-list', 'bill-empty', bills, r => {
+          const p = r.value ? r.value.split('|') : ['', '', ''];
+          const a = parseFloat(p[0]); const s = isNaN(a) ? p[0] : `$${a.toFixed(2)}`;
+          const paid = p[2] === 'true' ? ' ✓' : '';
+          return `${r.name || 'Bill'} • ${s}${paid}${r.notes ? ' — ' + r.notes : ''}`;
+        }, r => {
+          if (!r.due_date) return '';
+          const days = Math.ceil((new Date(r.due_date) - new Date()) / 86400000);
+          return days < 3 ? 'flag-high' : '';
+        });
+        renderList('goal-list', 'goal-empty', goals, r => {
+          const p = r.value ? r.value.split('|') : ['0', '0'];
+          const t = parseFloat(p[0]), sv = parseFloat(p[1]);
+          const pct = t > 0 ? Math.min(100, Math.round(sv / t * 100)) : 0;
+          return `${r.name || 'Goal'} • $${sv.toFixed(2)}/$${t.toFixed(2)} (${pct}%)${r.notes ? ' — ' + r.notes : ''}`;
+        });
+        renderMiniCalendar(bills, expenses, income);
+      }
+    };
+
+    function checkLimit() {
+      if (allData.length >= 999) {
+        document.getElementById('limit-warning').classList.remove('hidden');
+        setTimeout(() => document.getElementById('limit-warning').classList.add('hidden'), 3000);
+        return false;
+      }
+      return true;
+    }
+
+    function setBtnLoading(form, loading) {
+      const btn = form.querySelector('button[type=submit]');
+      if (!btn) return;
+      if (loading) { btn.dataset.originalText = btn.textContent; btn.disabled = true; btn.textContent = 'Saving...'; }
+      else { btn.disabled = false; btn.textContent = btn.dataset.originalText || 'Save'; }
+    }
+
+    document.getElementById('profile-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = e.target; setBtnLoading(form, true);
+      const obj = { type: 'profile', name: document.getElementById('pf-name').value, value: [document.getElementById('pf-age').value, document.getElementById('pf-weight').value, document.getElementById('pf-height').value].join('|'), date: new Date().toISOString(), notes: '' };
+      const res = profileRecord ? await window.dataSdk.update({ ...profileRecord, ...obj }) : (checkLimit() ? await window.dataSdk.create(obj) : { isOk: false, isError: true });
+      setBtnLoading(form, false);
+      if (res.isOk) showToast('success-toast', 'Profile saved! ✨');
+      else showToast('error-toast', 'Failed to save profile.');
+    });
+
+    document.getElementById('meal-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'meal', name: document.getElementById('meal-name').value, value: '', date: new Date().toISOString(), notes: document.getElementById('meal-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Meal logged! 🍽️'); }
+      else showToast('error-toast', 'Failed to log meal.');
+    });
+
+    document.getElementById('blood-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'blood_sugar', name: 'Blood Sugar', value: document.getElementById('bs-value').value, date: new Date().toISOString(), notes: document.getElementById('bs-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Reading logged! 💉'); }
+      else showToast('error-toast', 'Failed to log reading.');
+    });
+
+    document.getElementById('flower-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const fd = document.getElementById('flower-date').value;
+      const ft = document.getElementById('flower-time').value;
+      const dt = ft ? `${fd}T${ft}` : `${fd}T00:00`;
+      const res = await window.dataSdk.create({ type: 'flower', name: document.getElementById('flower-name').value, value: [document.getElementById('flower-location').value, document.getElementById('flower-allotment').value].join('|'), date: new Date(dt).toISOString(), notes: document.getElementById('flower-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Flower logged! 🌺'); }
+      else showToast('error-toast', 'Failed to log flower.');
+    });
+
+    document.getElementById('nightly-feeling').addEventListener('input', e => {
+      document.getElementById('feeling-display').textContent = e.target.value;
+    });
+
+    document.getElementById('nightly-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const nd = document.getElementById('nightly-date').value;
+      const res = await window.dataSdk.create({ type: 'nightly_dose', name: document.getElementById('nightly-amount').value, value: document.getElementById('nightly-feeling').value, date: new Date(`${nd}T00:00`).toISOString(), notes: '' });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); document.getElementById('feeling-display').textContent = '5'; showToast('success-toast', 'Dose logged! 🌙'); }
+      else showToast('error-toast', 'Failed to log dose.');
+    });
+
+    document.getElementById('books-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const status = document.getElementById('book-status').value;
+      const res = await window.dataSdk.create({ type: 'book', name: document.getElementById('book-title').value, value: document.getElementById('book-author').value, date: new Date().toISOString(), notes: `[${status}] ${document.getElementById('book-notes').value}` });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Book added! 📚'); }
+      else showToast('error-toast', 'Failed to add book.');
+    });
+
+    document.getElementById('music-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'album', name: document.getElementById('album-name').value, value: [document.getElementById('artist-name').value, document.getElementById('physical-media').value, document.getElementById('album-signed').checked.toString()].join('|'), date: new Date().toISOString(), notes: `${document.getElementById('cover-emoji').value} ${document.getElementById('music-notes').value}` });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); document.getElementById('album-signed').checked = false; showToast('success-toast', 'Album added! 🎵'); }
+      else showToast('error-toast', 'Failed to add album.');
+    });
+
+    ['blair', 'tessa', 'zoey', 'maximus'].forEach(pet => {
+      document.getElementById(pet + '-form').addEventListener('submit', async e => {
+        e.preventDefault(); if (!checkLimit()) return;
+        const form = e.target; setBtnLoading(form, true);
+        const rd = document.getElementById(pet + '-date').value;
+        const res = await window.dataSdk.create({ type: 'pet_reminder', category: pet, name: pet, value: `${document.getElementById(pet + '-type').value}|${document.getElementById(pet + '-notes').value}`, date: new Date(`${rd}T00:00`).toISOString(), notes: document.getElementById(pet + '-notes').value });
+        setBtnLoading(form, false);
+        if (res.isOk) { form.reset(); showToast('success-toast', 'Reminder added! 🐾'); }
+        else showToast('error-toast', 'Failed to add reminder.');
+      });
+    });
+
+    document.getElementById('expense-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'expense', category: 'expense', name: document.getElementById('expense-category').value, value: document.getElementById('expense-amount').value, date: new Date().toISOString(), notes: document.getElementById('expense-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Expense logged! 💳'); }
+      else showToast('error-toast', 'Failed to log expense.');
+    });
+
+    document.getElementById('income-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'income', category: 'income', name: document.getElementById('income-source').value, value: [document.getElementById('income-amount').value, document.getElementById('income-frequency').value].join('|'), date: new Date().toISOString(), notes: document.getElementById('income-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Income recorded! 💰'); }
+      else showToast('error-toast', 'Failed to record income.');
+    });
+
+    document.getElementById('bill-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'bill', category: 'bill', name: document.getElementById('bill-name').value, value: [document.getElementById('bill-amount').value, document.getElementById('bill-frequency').value, document.getElementById('bill-paid').checked.toString()].join('|'), date: new Date().toISOString(), due_date: new Date(document.getElementById('bill-due').value).toISOString(), notes: document.getElementById('bill-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Bill added! 📅'); }
+      else showToast('error-toast', 'Failed to add bill.');
+    });
+
+    document.getElementById('goal-form').addEventListener('submit', async e => {
+      e.preventDefault(); if (!checkLimit()) return;
+      const form = e.target; setBtnLoading(form, true);
+      const res = await window.dataSdk.create({ type: 'savings_goal', category: 'goal', name: document.getElementById('goal-name').value, value: [document.getElementById('goal-target').value, document.getElementById('goal-saved').value].join('|'), date: new Date().toISOString(), due_date: new Date(document.getElementById('goal-deadline').value).toISOString(), notes: document.getElementById('goal-notes').value });
+      setBtnLoading(form, false);
+      if (res.isOk) { form.reset(); showToast('success-toast', 'Goal created! 🎯'); }
+      else showToast('error-toast', 'Failed to create goal.');
+    });
+
+    let calendarMonth = new Date();
+
+    function renderMiniCalendar(bills, expenses, income) {
+      const cal = document.getElementById('mini-calendar');
+      const events = document.getElementById('calendar-events');
+      const empty = document.getElementById('calendar-empty');
+      const monthDisplay = document.getElementById('cal-month-display');
+      if (!cal || !monthDisplay) return;
+      const year = calendarMonth.getFullYear(), month = calendarMonth.getMonth();
+      monthDisplay.textContent = calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const allEvents = [...bills, ...expenses, ...income];
+      let html = '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:0.5rem;font-size:0.75rem;text-align:center">';
+      ['S','M','T','W','T','F','S'].forEach(d => { html += `<div style="font-weight:700;opacity:0.6;padding:0.25rem">${d}</div>`; });
+      for (let i = 0; i < firstDay; i++) html += '<div style="aspect-ratio:1;opacity:0.2">-</div>';
+      const today = new Date();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dateStr = new Date(year, month, day).toISOString().split('T')[0];
+        const hasEvent = allEvents.some(e => ((e.due_date || e.date || '').split('T')[0]) === dateStr);
+        const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+        html += `<div class="calendar-day ${isToday ? 'is-today' : (hasEvent ? 'has-event' : '')}">${day}</div>`;
+      }
+      html += '</div>';
+      cal.innerHTML = html;
+      const upcoming = [];
+      const firstDayOfMonth = new Date(year, month, 1);
+      const lastDayOfMonth = new Date(year, month + 1, 0);
+      for (let d = new Date(firstDayOfMonth); d <= lastDayOfMonth; d.setDate(d.getDate() + 1)) {
+        const ds = d.toISOString().split('T')[0];
+        allEvents.filter(e => ((e.due_date || e.date || '').split('T')[0]) === ds).forEach(e => upcoming.push({ date: new Date(d), event: e }));
+      }
+      if (upcoming.length === 0) { events.innerHTML = ''; empty.style.display = 'block'; }
+      else {
+        empty.style.display = 'none';
+        events.innerHTML = upcoming.map(({date, event}) => {
+          const emoji = event.type === 'bill' ? '📅' : (event.type === 'expense' ? '💳' : '💰');
+          const amt = event.value ? parseFloat(event.value.split('|')[0]) : NaN;
+          return `<div class="record-item flex justify-between items-start" style="margin-bottom:0.5rem"><div class="flex-1 min-w-0"><span class="font-medium text-white">${emoji} ${event.name || 'Event'}</span><br><span class="text-xs opacity-60">${date.toLocaleDateString()}${!isNaN(amt) ? ' • $' + amt.toFixed(2) : ''}</span></div></div>`;
+        }).join('');
+      }
+    }
+
+    document.getElementById('cal-prev').addEventListener('click', () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() - 1);
+      renderMiniCalendar(
+        allData.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || '')),
+        allData.filter(d => d.type === 'expense'),
+        allData.filter(d => d.type === 'income')
+      );
+    });
+
+    document.getElementById('cal-next').addEventListener('click', () => {
+      calendarMonth.setMonth(calendarMonth.getMonth() + 1);
+      renderMiniCalendar(
+        allData.filter(d => d.type === 'bill').sort((a, b) => (a.due_date || '').localeCompare(b.due_date || '')),
+        allData.filter(d => d.type === 'expense'),
+        allData.filter(d => d.type === 'income')
+      );
+    });
+
+    (async () => {
+      const r = await window.dataSdk.init(handler);
+      if (r.isError) showToast('error-toast', 'Failed to connect to data. Please refresh.');
+      lucide.createIcons();
+    })();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9fc3ecb282af0d71',t:'MTc3ODg2Njc5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
+</body></html>
